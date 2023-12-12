@@ -1,7 +1,6 @@
 # PO_2023_CHRZANOWSKI_MALEK
 
-## Prowadzący
-Zbigniew Kaleta
+## Prowadzący - dr inż. Zbigniew Kaleta
 
 ## Członkowie zespołu
 - Rafał Chrzanowski (gr. wtorek 13:00)
