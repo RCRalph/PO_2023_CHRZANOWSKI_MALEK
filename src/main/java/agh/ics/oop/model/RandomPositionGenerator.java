@@ -13,8 +13,6 @@ public class RandomPositionGenerator implements Iterable<Vector2D> {
     public RandomPositionGenerator(Boundary boundary, int itemCount) {
         if (itemCount < 0 || itemCount > boundary.totalPositionCount()) {
             throw new IllegalArgumentException("Invalid item count");
-        } else if (!boundary.lowerLeftCorner().precedes(boundary.upperRightCorner())) {
-            throw new IllegalArgumentException("Illegal upper-right position");
         }
 
         List<Vector2D> positions = this.getAllPossiblePositions(boundary);
