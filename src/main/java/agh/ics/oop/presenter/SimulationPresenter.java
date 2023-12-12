@@ -10,7 +10,6 @@ import agh.ics.oop.model.map.WorldMap;
 import javafx.application.Platform;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
-import javafx.fxml.Initializable;
 import javafx.geometry.HPos;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
@@ -19,15 +18,11 @@ import javafx.scene.layout.ColumnConstraints;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.RowConstraints;
 
-import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
-import java.util.ResourceBundle;
 
-public class SimulationPresenter implements MapChangeListener, Initializable {
-    private static final String[] MOVES = new String[] {"f", "b", "l", "r"};
-
+public class SimulationPresenter implements MapChangeListener {
     @FXML
     private Label mapMessage;
 
@@ -49,19 +44,6 @@ public class SimulationPresenter implements MapChangeListener, Initializable {
 
         this.map = map;
         this.map.registerObserver(this);
-    }
-
-    @Override
-    public void initialize(URL location, ResourceBundle resources) {
-        Random random = new Random();
-        int count = random.nextInt(5, 30);
-
-        List<String> moveList = new ArrayList<>(count);
-        for (int i = 0; i < count; i++) {
-            moveList.add(MOVES[random.nextInt(MOVES.length)]);
-        }
-
-        this.moveInput.setText(String.join(" ", moveList));
     }
 
     private void addToGridPane(String text, int column, int row) {
