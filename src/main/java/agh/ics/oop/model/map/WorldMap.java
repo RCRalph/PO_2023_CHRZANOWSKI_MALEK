@@ -1,7 +1,6 @@
 package agh.ics.oop.model.map;
 
-import agh.ics.oop.model.MoveDirection;
-import agh.ics.oop.model.MoveValidator;
+import agh.ics.oop.model.PositionIndicator;
 import agh.ics.oop.model.Vector2D;
 import agh.ics.oop.model.element.WorldElement;
 
@@ -14,7 +13,7 @@ import java.util.UUID;
  *
  * @author apohllo, idzik
  */
-public interface WorldMap extends MoveValidator {
+public interface WorldMap extends PositionIndicator {
 
     /**
      * Place an animal on the map.
