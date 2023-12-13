@@ -1,5 +1,7 @@
 package agh.ics.oop.model;
 
+import agh.ics.oop.model.element.Gene;
+
 public enum MapDirection {
     NORTH(new Vector2D(0, 1), "N"),
     NORTH_EAST(new Vector2D(1, 1), "NE"),
@@ -23,11 +25,11 @@ public enum MapDirection {
         return MapDirection.values()[(this.ordinal() + gene.ordinal()) % MapDirection.values().length];
     }
 
-    public String toString() {
-        return this.label;
-    }
-
     public Vector2D toSquareVector() {
         return this.squareVector;
+    }
+
+    public String toString() {
+        return this.label;
     }
 }

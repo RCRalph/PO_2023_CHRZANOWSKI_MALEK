@@ -1,4 +1,4 @@
-package agh.ics.oop.model;
+package agh.ics.oop.model.element;
 
 public enum Gene {
     FORWARD,

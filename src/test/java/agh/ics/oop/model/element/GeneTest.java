@@ -1,6 +1,5 @@
-package agh.ics.oop.model.map;
+package agh.ics.oop.model.element;
 
-import agh.ics.oop.model.Gene;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.*;
