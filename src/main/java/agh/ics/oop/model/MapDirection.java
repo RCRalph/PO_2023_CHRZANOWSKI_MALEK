@@ -2,6 +2,8 @@ package agh.ics.oop.model;
 
 import agh.ics.oop.model.element.Gene;
 
+import java.util.Random;
+
 public enum MapDirection {
     NORTH(new Vector2D(0, 1), "N"),
     NORTH_EAST(new Vector2D(1, 1), "NE"),
@@ -31,5 +33,9 @@ public enum MapDirection {
 
     public String toString() {
         return this.label;
+    }
+
+    public static MapDirection random() {
+        return values()[new Random().nextInt(values().length)];
     }
 }
