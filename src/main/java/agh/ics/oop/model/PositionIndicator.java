@@ -8,5 +8,5 @@ public interface PositionIndicator {
      * @param direction The direction of the move
      * @return New position of the object
      */
-    Vector2D getNewPosition(Vector2D currentPosition, MapDirection direction);
+    Vector2D indicatePosition(Vector2D currentPosition, MapDirection direction);
 }

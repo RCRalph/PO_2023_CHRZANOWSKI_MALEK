@@ -1,8 +1,8 @@
 package agh.ics.oop;
 
-import agh.ics.oop.model.map.AnimalBehaviourIndicator;
-import agh.ics.oop.model.map.MutationIndicator;
-import agh.ics.oop.model.map.PlantGrowthVariant;
+import agh.ics.oop.model.element.AnimalBehaviourIndicator;
+import agh.ics.oop.model.element.GenesIndicator;
+import agh.ics.oop.model.map.PlantGrowthIndicator;
 import agh.ics.oop.model.map.WorldMap;
 
 public record SimulationParameters(
@@ -18,8 +18,8 @@ public record SimulationParameters(
     int reproductionEnergy,
     int minimumMutationCount,
     int maximumMutationCount,
-    Class<PlantGrowthVariant> plantGrowthVariantClass,
-    Class<MutationIndicator> mutationIndicatorClass,
+    Class<PlantGrowthIndicator> plantGrowthVariantClass,
+    Class<GenesIndicator> mutationIndicatorClass,
     int geneCount,
     Class<AnimalBehaviourIndicator> animalBehaviourIndicatorClass
 ) {
