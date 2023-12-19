@@ -25,27 +25,27 @@ public interface WorldMap extends PoseIndicator {
     void placeAnimal(Animal animal);
 
     /**
-     * Place a plant on the map.
+     * Place plants on the map.
      *
-     * @param plant The plant to place on the map.
+     * @param plantCount The max amount of plants to place.
      */
-    void placePlant(Plant plant) throws PositionAlreadyOccupiedException;
-
-    void removeDeadAnimals();
-
-    void moveAnimals();
-
-    void consumePlants();
-
-    void reproduceAnimals();
-
-    void growNewPlants();
+    void growPlants(int plantCount);
 
     /**
-     * Moves an animal (if it is present on the map) according to specified direction.
-     * If the move is not possible, this method has no effect.
+     * Removes all dead animals from the map
      */
-    void move(WorldElement element);
+    void removeDeadAnimals();
+
+    /**
+     * Moves all animals on the map.
+     */
+    void moveAnimals();
+
+    /**
+     * Chooses animals which can consume plants at their positions,
+     * then increases their energy and removes eaten plants from the map.
+     */
+    void consumePlants();
 
     /**
      * Return true if given position on the map is occupied. Should not be
@@ -58,12 +58,19 @@ public interface WorldMap extends PoseIndicator {
     boolean isOccupied(Vector2D position);
 
     /**
-     * Return an animal at a given position.
+     * Return a collection of WorldElement at a given position.
      *
-     * @param position The position of the animal.
-     * @return animal or null if the position is not occupied.
+     * @param position The position of the world elements.
+     * @return Collection of WorldElement or empty collection if position isn't occupied.
      */
     Collection<WorldElement> objectsAt(Vector2D position);
+
+    /**
+     * Return the count of animals currently on the map
+     *
+     * @return Integer value of animals on the map
+     */
+    int animalCount();
 
     /**
      * Return a collection of elements contained on the map.
@@ -78,13 +85,6 @@ public interface WorldMap extends PoseIndicator {
      * @return Boundary records of map bounds
      */
     Boundary getCurrentBounds();
-
-    /**
-     * Return UUID of map
-     *
-     * @return UUID of map
-     */
-    UUID getID();
 
     void subscribe(MapChangeListener listener);
 

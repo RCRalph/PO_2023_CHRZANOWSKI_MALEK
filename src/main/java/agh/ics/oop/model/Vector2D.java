@@ -1,6 +1,18 @@
 package agh.ics.oop.model;
 
+import agh.ics.oop.model.map.Boundary;
+
+import java.util.Random;
+
 public record Vector2D(int x, int y) {
+    public static Vector2D random(Boundary boundary) {
+        Random random = new Random();
+
+        return new Vector2D(
+            random.nextInt(boundary.lowerLeftCorner().x(), boundary.upperRightCorner().x()),
+            random.nextInt(boundary.lowerLeftCorner().y(), boundary.upperRightCorner().y())
+        );
+    }
 
     @Override
     public String toString() {
