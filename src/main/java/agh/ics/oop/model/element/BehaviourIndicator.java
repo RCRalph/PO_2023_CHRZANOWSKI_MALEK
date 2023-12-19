@@ -1,6 +1,6 @@
 package agh.ics.oop.model.element;
 
-public interface AnimalBehaviourIndicator {
+public interface BehaviourIndicator {
     /**
      * Indicate the new index of gene list for an object after it changes its orientation
      *
