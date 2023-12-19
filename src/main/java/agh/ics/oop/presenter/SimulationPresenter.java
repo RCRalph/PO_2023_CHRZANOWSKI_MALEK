@@ -2,6 +2,7 @@ package agh.ics.oop.presenter;
 
 import agh.ics.oop.Simulation;
 import agh.ics.oop.SimulationEngine;
+import agh.ics.oop.SimulationParameters;
 import agh.ics.oop.model.RandomPositionGenerator;
 import agh.ics.oop.model.Vector2D;
 import agh.ics.oop.model.map.Boundary;
@@ -39,11 +40,11 @@ public class SimulationPresenter implements MapChangeListener {
 
     public void setWorldMap(WorldMap map) {
         if (this.map != null) {
-            this.map.unregisterObserver(this);
+            this.map.unsubscribe(this);
         }
 
         this.map = map;
-        this.map.registerObserver(this);
+        this.map.subscribe(this);
     }
 
     private void addToGridPane(String text, int column, int row) {
@@ -88,7 +89,7 @@ public class SimulationPresenter implements MapChangeListener {
 
                 if (this.map.isOccupied(position)) {
                     this.addToGridPane(
-                        this.map.objectAt(position).toString(),
+                        "x",//this.map.objectAt(position).toString(),
                         c + 1 - boundary.lowerLeftCorner().x(),
                         boundary.upperRightCorner().y() - r + 1
                     );
@@ -121,12 +122,27 @@ public class SimulationPresenter implements MapChangeListener {
 
     @FXML
     private void onSimulationStartClicked(ActionEvent ignored) {
+        SimulationParameters simulationParameters = new SimulationParameters(
+          0,
+          0,
+          "Planet",
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          "Foresty Equator",
+          "Slight correction",
+          0,
+          "Full predestination"
+        );
+
         try {
-            Simulation simulation = new Simulation(
-                new ArrayList<>(), // TODO: Change Simulation class so it doesn't require this argument
-                this.getPositions(),
-                this.map
-            );
+            Simulation simulation = new Simulation(simulationParameters);
 
             SimulationEngine simulationEngine = new SimulationEngine(List.of(simulation));
             simulationEngine.runAsync();

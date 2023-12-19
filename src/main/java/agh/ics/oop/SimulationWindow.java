@@ -1,6 +1,5 @@
 package agh.ics.oop;
 
-import agh.ics.oop.model.map.GrassField;
 import agh.ics.oop.presenter.SimulationPresenter;
 import javafx.application.Application;
 import javafx.fxml.FXMLLoader;
@@ -9,7 +8,6 @@ import javafx.scene.layout.BorderPane;
 import javafx.stage.Stage;
 
 import java.io.IOException;
-import java.util.Random;
 
 public class SimulationWindow extends Application {
     private final String title;
@@ -26,7 +24,7 @@ public class SimulationWindow extends Application {
         this.configureStage(stage, viewRoot);
 
         SimulationPresenter presenter = loader.getController();
-        presenter.setWorldMap(new GrassField(new Random().nextInt(5, 30)));
+        //presenter.setWorldMap(new GrassField(new Random().nextInt(5, 30)));
 
         stage.show();
     }

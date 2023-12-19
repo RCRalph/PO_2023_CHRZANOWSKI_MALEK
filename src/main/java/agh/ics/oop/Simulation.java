@@ -5,11 +5,11 @@ import agh.ics.oop.model.element.GenesIndicator;
 import agh.ics.oop.model.map.WorldMap;
 
 public class Simulation implements Runnable {
-    private final WorldMap map;
+    //private final WorldMap map;
 
-    private final GenesIndicator genesIndicator;
+    //private final GenesIndicator genesIndicator;
 
-    private final BehaviourIndicator behaviourIndicator;
+    //private final BehaviourIndicator behaviourIndicator;
 
     public Simulation(SimulationParameters parameters) {
         if (parameters.mapWidth() <= 0) {
