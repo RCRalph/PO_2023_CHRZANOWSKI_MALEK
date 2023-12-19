@@ -5,31 +5,46 @@ import agh.ics.oop.model.element.WorldElement;
 
 import java.util.*;
 
-public class WorldMapElements {
-    private final Map<Vector2D, HashSet<WorldElement>> elements = new HashMap<>();
+class WorldMapElements<T extends WorldElement> {
+    private final Map<Vector2D, List<T>> elements = new HashMap<>();
 
     private void insertKey(Vector2D key) {
         if (!this.elements.containsKey(key)) {
-            this.elements.put(key, new HashSet<>());
+            this.elements.put(key, new ArrayList<>());
         }
     }
 
-    public void addElement(WorldElement element) {
+    public void addElement(T element) {
         this.insertKey(element.getPosition());
         this.elements.get(element.getPosition()).add(element);
     }
 
-    public void removeElement(WorldElement element) {
-        if (!this.elements.containsKey(element.getPosition())) {
-            this.elements.put(element.getPosition(), new HashSet<>());
+    public void removeElement(T element) {
+        Vector2D position = element.getPosition();
+
+        if (!this.elements.containsKey(position)) return;
+
+        this.elements.get(position).remove(element);
+        if (this.elements.get(position).isEmpty()) {
+            this.elements.remove(position);
         }
     }
 
     public boolean isOccupied(Vector2D position) {
-        return this.elements.containsKey(position) && !this.elements.get(position).isEmpty();
+        return this.elements.containsKey(position);
     }
 
-    public Collection<WorldElement> objectsAt(Vector2D position) {
+    public Collection<T> objectsAt(Vector2D position) {
         return Collections.unmodifiableCollection(this.elements.get(position));
+    }
+
+    public Collection<T> values() {
+        List<T> result = new ArrayList<>();
+
+        for (Vector2D key : this.elements.keySet()) {
+            result.addAll(this.elements.get(key));
+        }
+
+        return result;
     }
 }
