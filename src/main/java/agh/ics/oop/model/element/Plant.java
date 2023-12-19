@@ -2,8 +2,7 @@ package agh.ics.oop.model.element;
 
 import agh.ics.oop.model.Vector2D;
 
-public record Grass(Vector2D position) implements WorldElement {
-
+public record Plant(Vector2D position) implements WorldElement {
     @Override
     public boolean isAt(Vector2D position) {
         return this.position.equals(position);
