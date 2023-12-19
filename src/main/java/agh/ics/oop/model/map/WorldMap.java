@@ -1,7 +1,9 @@
 package agh.ics.oop.model.map;
 
-import agh.ics.oop.model.PositionIndicator;
+import agh.ics.oop.model.PoseIndicator;
 import agh.ics.oop.model.Vector2D;
+import agh.ics.oop.model.element.Animal;
+import agh.ics.oop.model.element.Plant;
 import agh.ics.oop.model.element.WorldElement;
 
 import java.util.Collection;
@@ -13,20 +15,37 @@ import java.util.UUID;
  *
  * @author apohllo, idzik
  */
-public interface WorldMap extends PositionIndicator {
+public interface WorldMap extends PoseIndicator {
 
     /**
      * Place an animal on the map.
      *
-     * @param element The animal to place on the map.
+     * @param animal The animal to place on the map.
      */
-    void place(WorldElement element) throws PositionAlreadyOccupiedException;
+    void placeAnimal(Animal animal);
+
+    /**
+     * Place a plant on the map.
+     *
+     * @param plant The plant to place on the map.
+     */
+    void placePlant(Plant plant) throws PositionAlreadyOccupiedException;
+
+    void removeDeadAnimals();
+
+    void moveAnimals();
+
+    void consumePlants();
+
+    void reproduceAnimals();
+
+    void growNewPlants();
 
     /**
      * Moves an animal (if it is present on the map) according to specified direction.
      * If the move is not possible, this method has no effect.
      */
-    void move(WorldElement element, MoveDirection direction);
+    void move(WorldElement element);
 
     /**
      * Return true if given position on the map is occupied. Should not be
@@ -44,7 +63,7 @@ public interface WorldMap extends PositionIndicator {
      * @param position The position of the animal.
      * @return animal or null if the position is not occupied.
      */
-    WorldElement objectAt(Vector2D position);
+    Collection<WorldElement> objectsAt(Vector2D position);
 
     /**
      * Return a collection of elements contained on the map.
@@ -67,7 +86,7 @@ public interface WorldMap extends PositionIndicator {
      */
     UUID getID();
 
-    void registerObserver(MapChangeListener listener);
+    void subscribe(MapChangeListener listener);
 
-    void unregisterObserver(MapChangeListener listener);
+    void unsubscribe(MapChangeListener listener);
 }
