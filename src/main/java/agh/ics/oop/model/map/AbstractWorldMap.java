@@ -1,105 +1,145 @@
 package agh.ics.oop.model.map;
 
-import agh.ics.oop.model.MapDirection;
-import agh.ics.oop.model.MoveDirection;
+import agh.ics.oop.model.Pose;
 import agh.ics.oop.model.Vector2D;
 import agh.ics.oop.model.element.Animal;
+import agh.ics.oop.model.element.DarwinistAnimalComparator;
+import agh.ics.oop.model.element.Plant;
 import agh.ics.oop.model.element.WorldElement;
 
 import java.util.*;
 
 abstract class AbstractWorldMap implements WorldMap {
-    protected final Map<Vector2D, Animal> animals = new HashMap<>();
+    protected final WorldMapAnimals animals = new WorldMapAnimals();
+
+    protected final Map<Vector2D, Plant> plants = new HashMap<>();
 
     protected final List<MapChangeListener> listeners = new ArrayList<>();
 
-    protected final UUID id = UUID.randomUUID();
+    protected final Boundary boundary;
 
-    @Override
-    public boolean canMoveTo(Vector2D position) {
-        return !this.animals.containsKey(position);
+    protected final PlantGrowthIndicator plantGrowthIndicator;
+
+    public AbstractWorldMap(
+        int mapWidth,
+        int mapHeight,
+        PlantGrowthIndicator plantGrowthIndicator
+    ) {
+        this.boundary = new Boundary(
+            new Vector2D(0, 0),
+            new Vector2D(mapWidth - 1, mapHeight - 1)
+        );
+
+        this.plantGrowthIndicator = plantGrowthIndicator;
     }
 
     @Override
-    public void place(WorldElement element) throws PositionAlreadyOccupiedException {
-        if (element instanceof Animal animal) {
-            if (!this.canMoveTo(animal.getPosition())) {
-                throw new PositionAlreadyOccupiedException(animal.getPosition());
-            }
+    public void placeAnimal(Animal animal) {
+        this.animals.addAnimal(animal);
+        this.mapChanged(String.format("Placed animal at %s", animal.getPosition()));
+    }
 
-            this.animals.put(animal.getPosition(), animal);
-        } else {
-            throw new IllegalArgumentException("WorldElement cannot be placed");
+    private Set<Vector2D> invalidPlantPositions() {
+        return Collections.unmodifiableSet(this.plants.keySet());
+    }
+
+    @Override
+    public void growPlants(int plantCount) {
+        Collection<Plant> plantsToPlace = this.plantGrowthIndicator.indicatePlantPositions(
+            this.boundary,
+            this.invalidPlantPositions(),
+            plantCount
+        );
+
+        for (Plant plant : plantsToPlace) {
+            this.plants.put(plant.getPosition(), plant);
+            this.mapChanged(String.format("Placed plant at %s", plant.getPosition()));
         }
-
-        this.mapChanged(String.format("Placed at %s", element.getPosition()));
     }
 
     @Override
-    public void move(WorldElement element, MoveDirection direction) {
-        if (this.objectAt(element.getPosition()) != element) return;
+    public void removeDeadAnimals(int currentDay) {
+        for (Animal animal : this.animals.values()) {
+            if (animal.getEnergyLevel() <= 0) {
+                animal.setDeathDay(currentDay);
+                this.animals.removeAnimal(animal);
+            }
+        }
+    }
 
-        if (element instanceof Animal animal) {
-            Vector2D startPosition = animal.getPosition();
-            MapDirection startOrientation = animal.getOrientation();
+    @Override
+    public void moveAnimals() {
+        for (Animal animal : this.animals.values()) {
+            Pose startPose = animal.getPose();
 
-            this.animals.remove(animal.getPosition());
-            animal.move(this, direction);
-            this.animals.put(animal.getPosition(), animal);
+            this.animals.removeAnimal(animal);
+            animal.move(this);
+            this.animals.addAnimal(animal);
 
-            if (!startOrientation.equals(animal.getOrientation())) {
+            if (!startPose.orientation().equals(animal.getOrientation())) {
                 this.mapChanged(String.format(
                     "Changed orientation of animal at %s from %s to %s",
-                    startPosition, startOrientation, animal.getOrientation()
-                ));
-            } else if (startPosition.equals(element.getPosition())) {
-                this.mapChanged(String.format(
-                    "Tried to move animal at %s %s - position already occupied",
-                    startPosition, direction
+                    startPose.position(), startPose.orientation(), animal.getOrientation()
                 ));
             } else {
                 this.mapChanged(String.format(
-                    "Successfully moved animal from %s to %s",
-                    startPosition, animal.getPosition()
+                    "Moved animal from %s to %s",
+                    startPose.position(), animal.getPosition()
                 ));
             }
+        }
+    }
+
+    @Override
+    public void consumePlants() {
+        for (Vector2D plantPosition : this.plants.keySet()) {
+            this.animals.animalsAt(plantPosition)
+                .stream()
+                .min(new DarwinistAnimalComparator())
+                .ifPresent(animal -> {
+                    animal.consumePlant();
+                    this.plants.remove(plantPosition);
+                });
         }
     }
 
     @Override
     public boolean isOccupied(Vector2D position) {
-        return this.animals.containsKey(position);
+        return this.plants.containsKey(position) || this.animals.isOccupied(position);
     }
 
     @Override
-    public WorldElement objectAt(Vector2D position) {
-        return this.animals.get(position);
+    public List<WorldElement> objectsAt(Vector2D position) {
+        List<WorldElement> result = new ArrayList<>(this.animals.animalsAt(position));
+
+        if (this.plants.containsKey(position)) {
+            result.add(this.plants.get(position));
+        }
+
+        return result;
     }
 
     @Override
-    public Collection<WorldElement> getElements() {
-        return Collections.unmodifiableCollection(this.animals.values());
+    public List<WorldElement> getElements() {
+        List<WorldElement> result = new ArrayList<>(this.animals.values());
+        result.addAll(this.plants.values());
+
+        return Collections.unmodifiableList(result);
+    }
+
+    @Override
+    public Set<Vector2D> getAnimalPositions() {
+        return this.animals.keys();
+    }
+
+    @Override
+    public int aliveAnimalCount() {
+        return this.animals.size();
     }
 
     @Override
     public Boundary getCurrentBounds() {
-        Vector2D lowerLeftCorner = new Vector2D(Integer.MAX_VALUE, Integer.MAX_VALUE);
-        Vector2D upperRightCorner = new Vector2D(Integer.MIN_VALUE, Integer.MIN_VALUE);
-
-        for (WorldElement item : this.getElements()) {
-            lowerLeftCorner = lowerLeftCorner.lowerLeft(item.getPosition());
-            upperRightCorner = upperRightCorner.upperRight(item.getPosition());
-        }
-
-        return new Boundary(lowerLeftCorner, upperRightCorner);
-    }
-
-    public void registerObserver(MapChangeListener listener) {
-        this.listeners.add(listener);
-    }
-
-    public void unregisterObserver(MapChangeListener listener) {
-        this.listeners.remove(listener);
+        return this.boundary;
     }
 
     private void mapChanged(String message) {
@@ -109,7 +149,12 @@ abstract class AbstractWorldMap implements WorldMap {
     }
 
     @Override
-    public UUID getID() {
-        return this.id;
+    public void subscribe(MapChangeListener listener) {
+        this.listeners.add(listener);
+    }
+
+    @Override
+    public void unsubscribe(MapChangeListener listener) {
+        this.listeners.remove(listener);
     }
 }

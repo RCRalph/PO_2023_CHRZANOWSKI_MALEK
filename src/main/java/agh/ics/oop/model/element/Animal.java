@@ -1,22 +1,51 @@
 package agh.ics.oop.model.element;
 
 import agh.ics.oop.model.MapDirection;
-import agh.ics.oop.model.MoveDirection;
-import agh.ics.oop.model.MoveValidator;
+import agh.ics.oop.model.Pose;
+import agh.ics.oop.model.PoseIndicator;
 import agh.ics.oop.model.Vector2D;
 
+import java.util.Collections;
+import java.util.List;
+import java.util.Random;
+
 public class Animal implements WorldElement {
+    private final List<Gene> genes;
+
+    private final int birthday;
+
+    private final EnergyParameters energyParameters;
+
+    private final BehaviourIndicator behaviourIndicator;
+
     private MapDirection orientation;
 
     private Vector2D position;
 
-    public Animal() {
-        this(new Vector2D(2, 2));
-    }
+    private int geneIndex;
 
-    public Animal(Vector2D position) {
+    private int energyLevel;
+
+    private int childCount = 0;
+
+    private int deathDay = -1;
+
+    public Animal(
+        Vector2D position,
+        List<Gene> genes,
+        BehaviourIndicator behaviourIndicator,
+        EnergyParameters energyParameters,
+        int birthday
+    ) {
         this.position = position;
-        this.orientation = MapDirection.NORTH;
+        this.genes = genes;
+        this.behaviourIndicator = behaviourIndicator;
+        this.energyParameters = energyParameters;
+        this.birthday = birthday;
+
+        this.energyLevel = this.energyParameters.startEnergy();
+        this.orientation = MapDirection.random();
+        this.geneIndex = new Random().nextInt(genes.size());
     }
 
     @Override
@@ -28,26 +57,67 @@ public class Animal implements WorldElement {
         return this.position.equals(position);
     }
 
-    public void move(MoveValidator validator, MoveDirection direction) {
-        switch (direction) {
-            case RIGHT -> this.orientation = this.orientation.next();
-            case LEFT -> this.orientation = this.orientation.previous();
-            case FORWARD -> this.setPosition(validator, this.position.add(this.orientation.toUnitVector()));
-            case BACKWARD -> this.setPosition(validator, this.position.subtract(this.orientation.toUnitVector()));
-        }
+    private Gene getCurrentGene() {
+        return this.genes.get(this.geneIndex);
+    }
+
+    public void move(PoseIndicator poseIndicator) {
+        this.orientation = this.orientation.rotateByGene(this.getCurrentGene());
+        this.geneIndex = this.behaviourIndicator.indicateGeneIndex(this.geneIndex);
+
+        Pose pose = poseIndicator.indicatePose(this.getPose());
+        this.position = pose.position();
+        this.orientation = pose.orientation();
+
+        this.energyLevel -= this.energyParameters.moveEnergy();
+    }
+
+    @Override
+    public Vector2D getPosition() {
+        return this.position;
     }
 
     public MapDirection getOrientation() {
-        return orientation;
+        return this.orientation;
     }
 
-    public Vector2D getPosition() {
-        return position;
+    public Pose getPose() {
+        return new Pose(this.position, this.orientation);
     }
 
-    private void setPosition(MoveValidator validator, Vector2D position) {
-        if (validator.canMoveTo(position)) {
-            this.position = position;
-        }
+    public int getEnergyLevel() {
+        return this.energyLevel;
+    }
+
+    public int getBirthday() {
+        return this.birthday;
+    }
+
+    public int getDeathDay() {
+        return this.deathDay;
+    }
+
+    public int getChildCount() {
+        return this.childCount;
+    }
+
+    public void consumePlant() {
+        this.energyLevel += this.energyParameters.plantEnergy();
+    }
+
+    public ReproductionInformation reproduce() {
+        ReproductionInformation result = new ReproductionInformation(
+            this.energyLevel,
+            Collections.unmodifiableList(this.genes)
+        );
+
+        this.childCount++;
+        this.energyLevel -= this.energyParameters.reproductionEnergy();
+
+        return result;
+    }
+
+    public void setDeathDay(int deathDay) {
+        this.deathDay = deathDay;
     }
 }

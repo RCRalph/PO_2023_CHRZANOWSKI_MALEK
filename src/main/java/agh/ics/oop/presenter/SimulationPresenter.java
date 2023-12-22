@@ -1,7 +1,9 @@
 package agh.ics.oop.presenter;
 
+import agh.ics.oop.InvalidSimulationConfigurationException;
 import agh.ics.oop.Simulation;
 import agh.ics.oop.SimulationEngine;
+import agh.ics.oop.SimulationParameters;
 import agh.ics.oop.model.RandomPositionGenerator;
 import agh.ics.oop.model.Vector2D;
 import agh.ics.oop.model.map.Boundary;
@@ -10,7 +12,6 @@ import agh.ics.oop.model.map.WorldMap;
 import javafx.application.Platform;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
-import javafx.fxml.Initializable;
 import javafx.geometry.HPos;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
@@ -19,15 +20,11 @@ import javafx.scene.layout.ColumnConstraints;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.RowConstraints;
 
-import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
-import java.util.ResourceBundle;
 
-public class SimulationPresenter implements MapChangeListener, Initializable {
-    private static final String[] MOVES = new String[] {"f", "b", "l", "r"};
-
+public class SimulationPresenter implements MapChangeListener {
     @FXML
     private Label mapMessage;
 
@@ -44,24 +41,11 @@ public class SimulationPresenter implements MapChangeListener, Initializable {
 
     public void setWorldMap(WorldMap map) {
         if (this.map != null) {
-            this.map.unregisterObserver(this);
+            this.map.unsubscribe(this);
         }
 
         this.map = map;
-        this.map.registerObserver(this);
-    }
-
-    @Override
-    public void initialize(URL location, ResourceBundle resources) {
-        Random random = new Random();
-        int count = random.nextInt(5, 30);
-
-        List<String> moveList = new ArrayList<>(count);
-        for (int i = 0; i < count; i++) {
-            moveList.add(MOVES[random.nextInt(MOVES.length)]);
-        }
-
-        this.moveInput.setText(String.join(" ", moveList));
+        this.map.subscribe(this);
     }
 
     private void addToGridPane(String text, int column, int row) {
@@ -106,7 +90,7 @@ public class SimulationPresenter implements MapChangeListener, Initializable {
 
                 if (this.map.isOccupied(position)) {
                     this.addToGridPane(
-                        this.map.objectAt(position).toString(),
+                        "x",//this.map.objectAt(position).toString(),
                         c + 1 - boundary.lowerLeftCorner().x(),
                         boundary.upperRightCorner().y() - r + 1
                     );
@@ -139,19 +123,35 @@ public class SimulationPresenter implements MapChangeListener, Initializable {
 
     @FXML
     private void onSimulationStartClicked(ActionEvent ignored) {
+        SimulationParameters simulationParameters = new SimulationParameters(
+          0,
+          0,
+          "Planet",
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          "Forested Equator",
+          "Slight correction",
+          0,
+          "Full predestination"
+        );
+
         try {
-            Simulation simulation = new Simulation(
-                new ArrayList<>(), // TODO: Change Simulation class so it doesn't require this argument
-                this.getPositions(),
-                this.map
-            );
+            Simulation simulation = new Simulation(simulationParameters);
 
             SimulationEngine simulationEngine = new SimulationEngine(List.of(simulation));
             simulationEngine.runAsync();
 
             this.moveInput.setDisable(true);
             this.startButton.setDisable(true);
-        } catch (IllegalArgumentException exception) {
+        } catch (InvalidSimulationConfigurationException exception) {
             this.drawMap(exception.getMessage());
         }
     }
