@@ -2,6 +2,9 @@ package agh.ics.oop.model.map;
 
 import agh.ics.oop.model.Vector2D;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public record Boundary(
     Vector2D lowerLeftCorner,
     Vector2D upperRightCorner
@@ -20,5 +23,17 @@ public record Boundary(
             verticalMaxItemCount = this.upperRightCorner().y() - this.lowerLeftCorner().y() + 1;
 
         return horizontalMaxItemCount * verticalMaxItemCount;
+    }
+
+    public List<Vector2D> allPossiblePositions() {
+        List<Vector2D> result = new ArrayList<>(this.totalPositionCount());
+
+        for (int x = this.lowerLeftCorner().x(); x <= this.upperRightCorner().x(); x++) {
+            for (int y = this.lowerLeftCorner().y(); y < this.upperRightCorner().y(); y++) {
+                result.add(new Vector2D(x, y));
+            }
+        }
+
+        return result;
     }
 }
