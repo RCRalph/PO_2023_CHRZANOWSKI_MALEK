@@ -4,6 +4,7 @@ import agh.ics.oop.model.MapDirection;
 import agh.ics.oop.model.Pose;
 import agh.ics.oop.model.PoseIndicator;
 import agh.ics.oop.model.Vector2D;
+import agh.ics.oop.model.element.behaviour.BehaviourIndicator;
 
 import java.util.Collections;
 import java.util.List;
@@ -63,7 +64,7 @@ public class Animal implements WorldElement {
 
     public void move(PoseIndicator poseIndicator) {
         this.orientation = this.orientation.rotateByGene(this.getCurrentGene());
-        this.geneIndex = this.behaviourIndicator.indicateGeneIndex(this.geneIndex);
+        this.geneIndex = this.behaviourIndicator.indicateGeneIndex(this);
 
         Pose pose = poseIndicator.indicatePose(this.getPose());
         this.position = pose.position();
@@ -99,6 +100,10 @@ public class Animal implements WorldElement {
 
     public int getChildCount() {
         return this.childCount;
+    }
+
+    public int getGeneIndex() {
+        return this.geneIndex;
     }
 
     public void consumePlant() {
