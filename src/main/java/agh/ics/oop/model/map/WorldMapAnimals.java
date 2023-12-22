@@ -8,15 +8,10 @@ import java.util.*;
 class WorldMapAnimals {
     private final Map<Vector2D, List<Animal>> animals = new HashMap<>();
 
-    private void insertKey(Vector2D key) {
-        if (!this.animals.containsKey(key)) {
-            this.animals.put(key, new ArrayList<>());
-        }
-    }
-
     public void addAnimal(Animal animal) {
-        this.insertKey(animal.getPosition());
-        this.animals.get(animal.getPosition()).add(animal);
+        this.animals
+            .computeIfAbsent(animal.getPosition(), key -> new ArrayList<>())
+            .add(animal);
     }
 
     public void removeAnimal(Animal animal) {
@@ -34,27 +29,12 @@ class WorldMapAnimals {
         return this.animals.containsKey(position);
     }
 
-    public Collection<Animal> animalsAt(Vector2D position) {
-        return Collections.unmodifiableCollection(this.animals.get(position));
+    public List<Animal> animalsAt(Vector2D position) {
+        return Collections.unmodifiableList(this.animals.get(position));
     }
 
-    public List<Animal> getOrderedAnimalsAt(Vector2D position) {
-        List<Animal> result = new ArrayList<>(this.animalsAt(position));
-
-        Collections.shuffle(result);
-        result.sort((animal1, animal2) -> {
-            if (animal1.getEnergyLevel() != animal2.getEnergyLevel()) {
-                return animal2.getEnergyLevel() - animal1.getEnergyLevel();
-            } else if  (animal1.getBirthday() != animal2.getBirthday()) {
-                return animal2.getBirthday() - animal1.getBirthday();
-            } else if (animal1.getChildCount() != animal2.getChildCount()) {
-                return animal2.getChildCount() - animal1.getChildCount();
-            } else {
-                return 0;
-            }
-        });
-
-        return result;
+    public Set<Vector2D> keys() {
+        return this.animals.keySet();
     }
 
     public Collection<Animal> values() {

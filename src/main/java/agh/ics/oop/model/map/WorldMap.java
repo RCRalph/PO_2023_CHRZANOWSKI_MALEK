@@ -3,11 +3,10 @@ package agh.ics.oop.model.map;
 import agh.ics.oop.model.PoseIndicator;
 import agh.ics.oop.model.Vector2D;
 import agh.ics.oop.model.element.Animal;
-import agh.ics.oop.model.element.Plant;
 import agh.ics.oop.model.element.WorldElement;
 
-import java.util.Collection;
-import java.util.UUID;
+import java.util.List;
+import java.util.Set;
 
 /**
  * The interface responsible for interacting with the map of the world.
@@ -34,7 +33,7 @@ public interface WorldMap extends PoseIndicator {
     /**
      * Removes all dead animals from the map
      */
-    void removeDeadAnimals();
+    void removeDeadAnimals(int currentDay);
 
     /**
      * Moves all animals on the map.
@@ -63,21 +62,28 @@ public interface WorldMap extends PoseIndicator {
      * @param position The position of the world elements.
      * @return Collection of WorldElement or empty collection if position isn't occupied.
      */
-    Collection<WorldElement> objectsAt(Vector2D position);
-
-    /**
-     * Return the count of animals currently on the map
-     *
-     * @return Integer value of animals on the map
-     */
-    int animalCount();
+    List<WorldElement> objectsAt(Vector2D position);
 
     /**
      * Return a collection of elements contained on the map.
      *
      * @return Unmodifiable collection of elements on the map
      */
-    Collection<WorldElement> getElements();
+    List<WorldElement> getElements();
+
+    /**
+     * Return a collection of elements contained on the map.
+     *
+     * @return Unmodifiable collection of elements on the map
+     */
+    Set<Vector2D> getAnimalPositions();
+
+    /**
+     * Return the count of animals currently on the map
+     *
+     * @return Integer value of animals on the map
+     */
+    int aliveAnimalCount();
 
     /**
      * Return a Boundary record of map bounds.

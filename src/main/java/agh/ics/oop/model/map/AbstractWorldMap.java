@@ -3,6 +3,7 @@ package agh.ics.oop.model.map;
 import agh.ics.oop.model.Pose;
 import agh.ics.oop.model.Vector2D;
 import agh.ics.oop.model.element.Animal;
+import agh.ics.oop.model.element.DarwinistAnimalComparator;
 import agh.ics.oop.model.element.Plant;
 import agh.ics.oop.model.element.WorldElement;
 
@@ -38,40 +39,29 @@ abstract class AbstractWorldMap implements WorldMap {
         this.mapChanged(String.format("Placed animal at %s", animal.getPosition()));
     }
 
-    private void placePlant(Plant plant) throws PositionAlreadyOccupiedException {
-        if (this.plants.containsKey(plant.getPosition())) {
-            throw new PositionAlreadyOccupiedException(plant.getPosition());
-        }
-
-        this.plants.put(plant.getPosition(), plant);
-        this.mapChanged(String.format("Placed plant at %s", plant.getPosition()));
+    private Set<Vector2D> invalidPlantPositions() {
+        return Collections.unmodifiableSet(this.plants.keySet());
     }
 
     @Override
     public void growPlants(int plantCount) {
         Collection<Plant> plantsToPlace = this.plantGrowthIndicator.indicatePlantPositions(
             this.boundary,
-            new HashSet<>(),//this.occupiedPositions(),
+            this.invalidPlantPositions(),
             plantCount
         );
 
-        try {
-            for (Plant plant : plantsToPlace) {
-                this.placePlant(plant);
-            }
-        } catch (PositionAlreadyOccupiedException exception) {
-            /*  This should never happen, because PlantGrowthIndicator
-                should always return Plant instances on only
-                non-occupied positions.  */
-            this.mapChanged(exception.getMessage());
-            throw new IllegalArgumentException(exception.getMessage());
+        for (Plant plant : plantsToPlace) {
+            this.plants.put(plant.getPosition(), plant);
+            this.mapChanged(String.format("Placed plant at %s", plant.getPosition()));
         }
     }
 
     @Override
-    public void removeDeadAnimals() {
+    public void removeDeadAnimals(int currentDay) {
         for (Animal animal : this.animals.values()) {
             if (animal.getEnergyLevel() <= 0) {
+                animal.setDeathDay(currentDay);
                 this.animals.removeAnimal(animal);
             }
         }
@@ -103,10 +93,13 @@ abstract class AbstractWorldMap implements WorldMap {
     @Override
     public void consumePlants() {
         for (Vector2D plantPosition : this.plants.keySet()) {
-            if (!this.animals.isOccupied(plantPosition)) continue;
-
-            this.animals.getOrderedAnimalsAt(plantPosition).get(0).eatPlant();
-            this.plants.remove(plantPosition);
+            this.animals.animalsAt(plantPosition)
+                .stream()
+                .min(new DarwinistAnimalComparator())
+                .ifPresent(animal -> {
+                    animal.consumePlant();
+                    this.plants.remove(plantPosition);
+                });
         }
     }
 
@@ -116,7 +109,7 @@ abstract class AbstractWorldMap implements WorldMap {
     }
 
     @Override
-    public Collection<WorldElement> objectsAt(Vector2D position) {
+    public List<WorldElement> objectsAt(Vector2D position) {
         List<WorldElement> result = new ArrayList<>(this.animals.animalsAt(position));
 
         if (this.plants.containsKey(position)) {
@@ -127,15 +120,20 @@ abstract class AbstractWorldMap implements WorldMap {
     }
 
     @Override
-    public Collection<WorldElement> getElements() {
+    public List<WorldElement> getElements() {
         List<WorldElement> result = new ArrayList<>(this.animals.values());
         result.addAll(this.plants.values());
 
-        return Collections.unmodifiableCollection(result);
+        return Collections.unmodifiableList(result);
     }
 
     @Override
-    public int animalCount() {
+    public Set<Vector2D> getAnimalPositions() {
+        return this.animals.keys();
+    }
+
+    @Override
+    public int aliveAnimalCount() {
         return this.animals.size();
     }
 
