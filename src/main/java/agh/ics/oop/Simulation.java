@@ -13,7 +13,7 @@ public class Simulation implements Runnable {
 
     private final WorldMap map = null;
 
-    //private final GenesIndicator genesIndicator;
+    private final GenesIndicator genesIndicator = null;
 
     private final BehaviourIndicator behaviourIndicator = null;
 
@@ -21,29 +21,31 @@ public class Simulation implements Runnable {
 
     private final EnergyParameters energyParameters;
 
-    public Simulation(SimulationParameters parameters) {
+    private int currentDay = 0;
+
+    public Simulation(SimulationParameters parameters) throws InvalidSimulationConfigurationException {
         if (parameters.mapWidth() <= 0) {
-            throw new IllegalArgumentException("Map width should be greater than 0");
+            throw new InvalidSimulationConfigurationException("Map width should be greater than 0");
         } else if (parameters.mapHeight() <= 0) {
-            throw new IllegalArgumentException("Map height should be greater than 0");
+            throw new InvalidSimulationConfigurationException("Map height should be greater than 0");
         } else if (parameters.startPlantCount() < 0) {
-            throw new IllegalArgumentException("Start plant count should be greater than or equal to 0");
+            throw new InvalidSimulationConfigurationException("Start plant count should be greater than or equal to 0");
         } else if (parameters.dailyPlantGrowth() < 0) {
-            throw new IllegalArgumentException("Daily plant growth should be greater than or equal to 0");
+            throw new InvalidSimulationConfigurationException("Daily plant growth should be greater than or equal to 0");
         } else if (parameters.startAnimalCount() <= 0) {
-            throw new IllegalArgumentException("Start animal count should be greater than 0");
+            throw new InvalidSimulationConfigurationException("Start animal count should be greater than 0");
         } else if (parameters.animalStartEnergy() < 0) {
-            throw new IllegalArgumentException("Animal's start energy should be greater than 0");
+            throw new InvalidSimulationConfigurationException("Animal's start energy should be greater than 0");
         } else if (parameters.plantEnergy() < 0) {
-            throw new IllegalArgumentException("Plant's energy should be greater than 0");
+            throw new InvalidSimulationConfigurationException("Plant's energy should be greater than 0");
         } else if (parameters.reproductionEnergy() < 0) {
-            throw new IllegalArgumentException("Reproduction energy should be greater than 0");
+            throw new InvalidSimulationConfigurationException("Reproduction energy should be greater than 0");
         } else if (parameters.minimumMutationCount() < 0) {
-            throw new IllegalArgumentException("Minimal mutation count should be greater or equal to 0");
+            throw new InvalidSimulationConfigurationException("Minimal mutation count should be greater or equal to 0");
         } else if (parameters.maximumMutationCount() > parameters.geneCount()) {
-            throw new IllegalArgumentException("Maximal mutation count should be less than or equal to gene count");
+            throw new InvalidSimulationConfigurationException("Maximal mutation count should be less than or equal to gene count");
         } else if (parameters.geneCount() <= 0) {
-            throw new IllegalArgumentException("Gene count should be greater than 0");
+            throw new InvalidSimulationConfigurationException("Gene count should be greater than 0");
         }
 
         this.parameters = parameters;
@@ -76,7 +78,12 @@ public class Simulation implements Runnable {
         }*/
     }
 
-    private void generateAnimals(int currentDay) {
+    private void placeAnimal(Animal animal) {
+        this.animals.add(animal);
+        this.map.placeAnimal(animal);
+    }
+
+    private void generateAnimals() {
         Boundary boundary = this.map.getCurrentBounds();
 
         for (int i = 0; i < this.parameters.startAnimalCount(); i++) {
@@ -85,27 +92,49 @@ public class Simulation implements Runnable {
                 Gene.generateList(this.parameters.geneCount()),
                 this.behaviourIndicator,
                 this.energyParameters,
-                currentDay
+                this.currentDay
             );
 
-            this.animals.add(animal);
-            this.map.placeAnimal(animal);
+            this.placeAnimal(animal);
         }
     }
 
     private void reproduceAnimals() {
+        for (Vector2D position : this.map.getAnimalPositions()) {
+            List<Animal> animals = this.map.objectsAt(position)
+                .stream()
+                .filter(item -> item instanceof Animal)
+                .map(item -> (Animal) item)
+                .filter(animal -> animal.getEnergyLevel() >= this.energyParameters.reproductionEnergy())
+                .sorted(new DarwinistAnimalComparator())
+                .toList();
 
+            if (animals.size() >= 2) {
+                Animal child = new Animal(
+                    position,
+                    this.genesIndicator.indicateGenes(
+                        animals.get(0).reproduce(),
+                        animals.get(1).reproduce()
+                    ),
+                    this.behaviourIndicator,
+                    this.energyParameters,
+                    this.currentDay
+                );
+
+                this.placeAnimal(child);
+            }
+        }
     }
 
     @Override
     public void run() {
-        int currentDay = 0;
-
-        this.generateAnimals(currentDay);
+        this.generateAnimals();
         this.map.growPlants(this.parameters.startPlantCount());
 
-        while (this.map.animalCount() > 0) {
-            this.map.removeDeadAnimals();
+        while (this.map.aliveAnimalCount() > 0) {
+            this.currentDay++;
+
+            this.map.removeDeadAnimals(this.currentDay);
             this.map.moveAnimals();
             this.map.consumePlants();
             this.reproduceAnimals();

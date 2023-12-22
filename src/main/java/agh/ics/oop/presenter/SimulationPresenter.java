@@ -1,5 +1,6 @@
 package agh.ics.oop.presenter;
 
+import agh.ics.oop.InvalidSimulationConfigurationException;
 import agh.ics.oop.Simulation;
 import agh.ics.oop.SimulationEngine;
 import agh.ics.oop.SimulationParameters;
@@ -150,7 +151,7 @@ public class SimulationPresenter implements MapChangeListener {
 
             this.moveInput.setDisable(true);
             this.startButton.setDisable(true);
-        } catch (IllegalArgumentException exception) {
+        } catch (InvalidSimulationConfigurationException exception) {
             this.drawMap(exception.getMessage());
         }
     }
