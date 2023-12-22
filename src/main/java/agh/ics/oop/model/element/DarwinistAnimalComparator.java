@@ -1,6 +1,9 @@
 package agh.ics.oop.model.element;
 
-import java.util.*;
+import java.util.Comparator;
+import java.util.IdentityHashMap;
+import java.util.Map;
+import java.util.Random;
 
 public class DarwinistAnimalComparator implements Comparator<Animal> {
     private final Map<Animal, Integer> orderOfEqualValues = new IdentityHashMap<>();

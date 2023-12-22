@@ -1,8 +1,8 @@
 package agh.ics.oop.model.element;
 
 import agh.ics.oop.model.MapDirection;
-import agh.ics.oop.model.PoseIndicator;
 import agh.ics.oop.model.Pose;
+import agh.ics.oop.model.PoseIndicator;
 import agh.ics.oop.model.Vector2D;
 
 import java.util.Collections;
