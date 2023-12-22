@@ -20,7 +20,7 @@ public class DarwinistAnimalComparator implements Comparator<Animal> {
      *
      * @param o1 the first animal to be compared.
      * @param o2 the second animal to be compared.
-     * @return O Information about compared values (-1, 0, 1)
+     * @return Information about compared values {-1, 0, 1}
      */
     @Override
     public int compare(Animal o1, Animal o2) {
