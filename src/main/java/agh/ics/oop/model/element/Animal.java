@@ -28,6 +28,8 @@ public class Animal implements WorldElement {
 
     private int childCount = 0;
 
+    private int deathDay = -1;
+
     public Animal(
         Vector2D position,
         List<Gene> genes,
@@ -88,18 +90,22 @@ public class Animal implements WorldElement {
     }
 
     public int getBirthday() {
-        return birthday;
+        return this.birthday;
+    }
+
+    public int getDeathDay() {
+        return this.deathDay;
     }
 
     public int getChildCount() {
-        return childCount;
+        return this.childCount;
     }
 
-    public void eatPlant() {
+    public void consumePlant() {
         this.energyLevel += this.energyParameters.plantEnergy();
     }
 
-    public ReproductionInformation getReproductionInformation() {
+    public ReproductionInformation reproduce() {
         ReproductionInformation result = new ReproductionInformation(
             this.energyLevel,
             Collections.unmodifiableList(this.genes)
@@ -109,5 +115,9 @@ public class Animal implements WorldElement {
         this.energyLevel -= this.energyParameters.reproductionEnergy();
 
         return result;
+    }
+
+    public void setDeathDay(int deathDay) {
+        this.deathDay = deathDay;
     }
 }
