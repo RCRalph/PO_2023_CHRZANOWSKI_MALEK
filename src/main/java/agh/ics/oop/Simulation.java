@@ -2,6 +2,10 @@ package agh.ics.oop;
 
 import agh.ics.oop.model.Vector2D;
 import agh.ics.oop.model.element.*;
+import agh.ics.oop.model.element.behaviour.ABitOfMadnessBehaviourIndicator;
+import agh.ics.oop.model.element.behaviour.BackAndForthBehaviourIndicator;
+import agh.ics.oop.model.element.behaviour.BehaviourIndicator;
+import agh.ics.oop.model.element.behaviour.FullPredestinationBehaviourIndicator;
 import agh.ics.oop.model.map.Boundary;
 import agh.ics.oop.model.map.WorldMap;
 
@@ -15,7 +19,7 @@ public class Simulation implements Runnable {
 
     private final GenesIndicator genesIndicator = null;
 
-    private final BehaviourIndicator behaviourIndicator = null;
+    private final BehaviourIndicator behaviourIndicator;
 
     private final List<Animal> animals = new ArrayList<>();
 
@@ -56,15 +60,19 @@ public class Simulation implements Runnable {
             this.parameters.reproductionEnergy()
         );
 
-        // Get plant growth indicator variant
+        // Set plant growth indicator variant
         /*PlantGrowthIndicator plantGrowthIndicator = switch (parameters.plantGrowthIndicatorVariant()) {
             case "Forested equators" -> ...
         }*/
 
-        // Get animal behaviour indicator variant
-        /*AnimalBehaviourIndicator animalBehaviourIndicator = switch (parameters.animalBehaviourIndicatorVariant()) {
-            case "Full predestination" -> ...
-        };*/
+        this.behaviourIndicator = switch (parameters.animalBehaviourIndicatorVariant()) {
+            case "Full predestination" -> new FullPredestinationBehaviourIndicator(parameters.geneCount());
+            case "A bit of madness" -> new ABitOfMadnessBehaviourIndicator(parameters.geneCount());
+            case "Back and forth" -> new BackAndForthBehaviourIndicator(parameters.geneCount());
+            default -> throw new InvalidSimulationConfigurationException(
+                "Animal behaviour indicator should point to a valid class name"
+            );
+        };
 
         // Set map
         /*this.map = switch (parameters.worldMapVariant()) {
