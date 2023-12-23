@@ -1,6 +1,6 @@
 package agh.ics.oop.model;
 
-import agh.ics.oop.model.element.Gene;
+import agh.ics.oop.model.element.gene.Gene;
 
 import java.util.Random;
 

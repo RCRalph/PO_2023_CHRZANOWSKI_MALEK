@@ -1,4 +1,4 @@
-package agh.ics.oop.model.element;
+package agh.ics.oop.model.element.gene;
 
 import java.util.List;
 

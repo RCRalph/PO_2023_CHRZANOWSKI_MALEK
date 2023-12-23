@@ -15,7 +15,7 @@ public record SimulationParameters(
     int minimumMutationCount,
     int maximumMutationCount,
     String plantGrowthIndicatorVariant,
-    String genesIndicatorVariant,
+    String childGenesIndicatorVariant,
     int geneCount,
     String animalBehaviourIndicatorVariant
 ) {}

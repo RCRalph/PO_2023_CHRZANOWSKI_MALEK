@@ -5,6 +5,8 @@ import agh.ics.oop.model.Pose;
 import agh.ics.oop.model.PoseIndicator;
 import agh.ics.oop.model.Vector2D;
 import agh.ics.oop.model.element.behaviour.BehaviourIndicator;
+import agh.ics.oop.model.element.gene.Gene;
+import agh.ics.oop.model.element.gene.ReproductionInformation;
 
 import java.util.Collections;
 import java.util.List;

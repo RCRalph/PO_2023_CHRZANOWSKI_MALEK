@@ -1,4 +1,4 @@
-package agh.ics.oop.model.element;
+package agh.ics.oop.model.element.gene;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -22,7 +22,7 @@ public enum Gene {
         return values()[(this.ordinal() + 1) % values().length];
     }
 
-    public static List<Gene> generateList(int count) {
+    public static List<Gene> randomList(int count) {
         Random random = new Random();
         List<Gene> result = new ArrayList<>(count);
 

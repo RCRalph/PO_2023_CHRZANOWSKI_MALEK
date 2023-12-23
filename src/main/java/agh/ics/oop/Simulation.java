@@ -6,6 +6,7 @@ import agh.ics.oop.model.element.behaviour.ABitOfMadnessBehaviourIndicator;
 import agh.ics.oop.model.element.behaviour.BackAndForthBehaviourIndicator;
 import agh.ics.oop.model.element.behaviour.BehaviourIndicator;
 import agh.ics.oop.model.element.behaviour.FullPredestinationBehaviourIndicator;
+import agh.ics.oop.model.element.gene.*;
 import agh.ics.oop.model.map.Boundary;
 import agh.ics.oop.model.map.WorldMap;
 
@@ -17,7 +18,7 @@ public class Simulation implements Runnable {
 
     private final WorldMap map = null;
 
-    private final GenesIndicator genesIndicator = null;
+    private final ChildGenesIndicator childGenesIndicator;
 
     private final BehaviourIndicator behaviourIndicator;
 
@@ -97,7 +98,7 @@ public class Simulation implements Runnable {
         for (int i = 0; i < this.parameters.startAnimalCount(); i++) {
             Animal animal = new Animal(
                 Vector2D.random(boundary),
-                Gene.generateList(this.parameters.geneCount()),
+                Gene.randomList(this.parameters.geneCount()),
                 this.behaviourIndicator,
                 this.energyParameters,
                 this.currentDay
@@ -120,7 +121,7 @@ public class Simulation implements Runnable {
             if (animals.size() >= 2) {
                 Animal child = new Animal(
                     position,
-                    this.genesIndicator.indicateGenes(
+                    this.childGenesIndicator.getChildGenes(
                         animals.get(0).reproduce(),
                         animals.get(1).reproduce()
                     ),

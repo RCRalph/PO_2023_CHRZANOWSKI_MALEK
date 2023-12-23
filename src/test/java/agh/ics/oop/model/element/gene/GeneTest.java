@@ -1,8 +1,8 @@
-package agh.ics.oop.model.element;
+package agh.ics.oop.model.element.gene;
 
 import org.junit.jupiter.api.Test;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public class GeneTest {
     @Test
