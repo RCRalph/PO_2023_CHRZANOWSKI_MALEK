@@ -1,9 +1,9 @@
 package agh.ics.oop.model;
 
-import agh.ics.oop.model.element.Gene;
+import agh.ics.oop.model.element.gene.Gene;
 import org.junit.jupiter.api.Test;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public class MapDirectionTest {
     @Test

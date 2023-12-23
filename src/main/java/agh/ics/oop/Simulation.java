@@ -1,7 +1,14 @@
 package agh.ics.oop;
 
 import agh.ics.oop.model.Vector2D;
-import agh.ics.oop.model.element.*;
+import agh.ics.oop.model.element.Animal;
+import agh.ics.oop.model.element.DarwinistAnimalComparator;
+import agh.ics.oop.model.element.EnergyParameters;
+import agh.ics.oop.model.element.behaviour.ABitOfMadnessBehaviourIndicator;
+import agh.ics.oop.model.element.behaviour.BackAndForthBehaviourIndicator;
+import agh.ics.oop.model.element.behaviour.BehaviourIndicator;
+import agh.ics.oop.model.element.behaviour.FullPredestinationBehaviourIndicator;
+import agh.ics.oop.model.element.gene.*;
 import agh.ics.oop.model.map.Boundary;
 import agh.ics.oop.model.map.WorldMap;
 
@@ -13,9 +20,9 @@ public class Simulation implements Runnable {
 
     private final WorldMap map = null;
 
-    private final GenesIndicator genesIndicator = null;
+    private final ChildGenesIndicator childGenesIndicator;
 
-    private final BehaviourIndicator behaviourIndicator = null;
+    private final BehaviourIndicator behaviourIndicator;
 
     private final List<Animal> animals = new ArrayList<>();
 
@@ -56,26 +63,51 @@ public class Simulation implements Runnable {
             this.parameters.reproductionEnergy()
         );
 
-        // Get plant growth indicator variant
+        // Set plant growth indicator variant
         /*PlantGrowthIndicator plantGrowthIndicator = switch (parameters.plantGrowthIndicatorVariant()) {
             case "Forested equators" -> ...
         }*/
 
-        // Get animal behaviour indicator variant
-        /*AnimalBehaviourIndicator animalBehaviourIndicator = switch (parameters.animalBehaviourIndicatorVariant()) {
-            case "Full predestination" -> ...
-        };*/
+        this.behaviourIndicator = switch (parameters.animalBehaviourIndicatorVariant()) {
+            case "Full predestination" -> new FullPredestinationBehaviourIndicator(parameters.geneCount());
+
+            case "A bit of madness" -> new ABitOfMadnessBehaviourIndicator(parameters.geneCount());
+
+            case "Back and forth" -> new BackAndForthBehaviourIndicator(parameters.geneCount());
+
+            default -> throw new InvalidSimulationConfigurationException(
+                "Animal behaviour indicator should point to a valid class name"
+            );
+        };
 
         // Set map
         /*this.map = switch (parameters.worldMapVariant()) {
 
         }*/
 
-        // Set genes indicator variant
-        /*this.genesIndicator = switch (parameters.genesIndicatorVariant()) {
-            case "Full randomization" -> ...
-            case "Slight correction" -> ...
-        }*/
+        this.childGenesIndicator = switch (parameters.childGenesIndicatorVariant()) {
+            case "Full randomization" -> new CompleteRandomnessChildGenesIndicator(
+                parameters.geneCount(),
+                parameters.minimumMutationCount(),
+                parameters.maximumMutationCount()
+            );
+
+            case "Slight correction" -> new SlightCorrectionChildGenesGenerator(
+                parameters.geneCount(),
+                parameters.minimumMutationCount(),
+                parameters.maximumMutationCount()
+            );
+
+            case "Replacement" -> new ReplacementChildGenesIndicator(
+                parameters.geneCount(),
+                parameters.minimumMutationCount(),
+                parameters.maximumMutationCount()
+            );
+
+            default -> throw new InvalidSimulationConfigurationException(
+                "Child genes indicator should point to a valid class name"
+            );
+        };
     }
 
     private void placeAnimal(Animal animal) {
@@ -89,7 +121,7 @@ public class Simulation implements Runnable {
         for (int i = 0; i < this.parameters.startAnimalCount(); i++) {
             Animal animal = new Animal(
                 Vector2D.random(boundary),
-                Gene.generateList(this.parameters.geneCount()),
+                Gene.randomList(this.parameters.geneCount()),
                 this.behaviourIndicator,
                 this.energyParameters,
                 this.currentDay
@@ -107,18 +139,20 @@ public class Simulation implements Runnable {
                 .map(item -> (Animal) item)
                 .filter(animal -> animal.getEnergyLevel() >= this.energyParameters.reproductionEnergy())
                 .sorted(new DarwinistAnimalComparator())
+                .limit(2)
                 .toList();
 
-            if (animals.size() >= 2) {
+            if (animals.size() == 2) {
                 Animal child = new Animal(
                     position,
-                    this.genesIndicator.indicateGenes(
+                    this.childGenesIndicator.getChildGenes(
                         animals.get(0).reproduce(),
                         animals.get(1).reproduce()
                     ),
                     this.behaviourIndicator,
                     this.energyParameters,
-                    this.currentDay
+                    this.currentDay,
+                    this.energyParameters.reproductionEnergy() * 2
                 );
 
                 this.placeAnimal(child);

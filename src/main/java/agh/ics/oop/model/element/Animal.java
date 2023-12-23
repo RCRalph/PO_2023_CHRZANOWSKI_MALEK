@@ -4,6 +4,9 @@ import agh.ics.oop.model.MapDirection;
 import agh.ics.oop.model.Pose;
 import agh.ics.oop.model.PoseIndicator;
 import agh.ics.oop.model.Vector2D;
+import agh.ics.oop.model.element.behaviour.BehaviourIndicator;
+import agh.ics.oop.model.element.gene.Gene;
+import agh.ics.oop.model.element.gene.ReproductionInformation;
 
 import java.util.Collections;
 import java.util.List;
@@ -37,13 +40,24 @@ public class Animal implements WorldElement {
         EnergyParameters energyParameters,
         int birthday
     ) {
+        this(position, genes, behaviourIndicator, energyParameters, birthday, energyParameters.startEnergy());
+    }
+
+    public Animal(
+        Vector2D position,
+        List<Gene> genes,
+        BehaviourIndicator behaviourIndicator,
+        EnergyParameters energyParameters,
+        int birthday,
+        int startEnergyLevel
+    ) {
         this.position = position;
         this.genes = genes;
         this.behaviourIndicator = behaviourIndicator;
         this.energyParameters = energyParameters;
         this.birthday = birthday;
 
-        this.energyLevel = this.energyParameters.startEnergy();
+        this.energyLevel = startEnergyLevel;
         this.orientation = MapDirection.random();
         this.geneIndex = new Random().nextInt(genes.size());
     }
@@ -63,7 +77,7 @@ public class Animal implements WorldElement {
 
     public void move(PoseIndicator poseIndicator) {
         this.orientation = this.orientation.rotateByGene(this.getCurrentGene());
-        this.geneIndex = this.behaviourIndicator.indicateGeneIndex(this.geneIndex);
+        this.geneIndex = this.behaviourIndicator.indicateGeneIndex(this);
 
         Pose pose = poseIndicator.indicatePose(this.getPose());
         this.position = pose.position();
@@ -99,6 +113,10 @@ public class Animal implements WorldElement {
 
     public int getChildCount() {
         return this.childCount;
+    }
+
+    public int getGeneIndex() {
+        return this.geneIndex;
     }
 
     public void consumePlant() {

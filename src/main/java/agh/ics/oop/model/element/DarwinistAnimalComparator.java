@@ -10,7 +10,7 @@ public class DarwinistAnimalComparator implements Comparator<Animal> {
 
     private final Random random = new Random();
 
-    private synchronized int equalOrderValue(Animal animal) {
+    private synchronized int orderOfEqualValue(Animal animal) {
         return this.orderOfEqualValues.computeIfAbsent(animal, ignore -> this.random.nextInt());
     }
 
@@ -32,6 +32,6 @@ public class DarwinistAnimalComparator implements Comparator<Animal> {
             return -Integer.compare(o1.getChildCount(), o2.getChildCount()); // DESC order
         }
 
-        return Integer.compare(this.equalOrderValue(o1), this.equalOrderValue(o2)); // Random order
+        return Integer.compare(this.orderOfEqualValue(o1), this.orderOfEqualValue(o2)); // Random order
     }
 }
