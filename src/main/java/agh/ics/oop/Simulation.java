@@ -1,7 +1,9 @@
 package agh.ics.oop;
 
 import agh.ics.oop.model.Vector2D;
-import agh.ics.oop.model.element.*;
+import agh.ics.oop.model.element.Animal;
+import agh.ics.oop.model.element.DarwinistAnimalComparator;
+import agh.ics.oop.model.element.EnergyParameters;
 import agh.ics.oop.model.element.behaviour.ABitOfMadnessBehaviourIndicator;
 import agh.ics.oop.model.element.behaviour.BackAndForthBehaviourIndicator;
 import agh.ics.oop.model.element.behaviour.BehaviourIndicator;
@@ -116,9 +118,10 @@ public class Simulation implements Runnable {
                 .map(item -> (Animal) item)
                 .filter(animal -> animal.getEnergyLevel() >= this.energyParameters.reproductionEnergy())
                 .sorted(new DarwinistAnimalComparator())
+                .limit(2)
                 .toList();
 
-            if (animals.size() >= 2) {
+            if (animals.size() == 2) {
                 Animal child = new Animal(
                     position,
                     this.childGenesIndicator.getChildGenes(
@@ -127,7 +130,8 @@ public class Simulation implements Runnable {
                     ),
                     this.behaviourIndicator,
                     this.energyParameters,
-                    this.currentDay
+                    this.currentDay,
+                    this.energyParameters.reproductionEnergy() * 2
                 );
 
                 this.placeAnimal(child);

@@ -40,13 +40,24 @@ public class Animal implements WorldElement {
         EnergyParameters energyParameters,
         int birthday
     ) {
+        this(position, genes, behaviourIndicator, energyParameters, birthday, energyParameters.startEnergy());
+    }
+
+    public Animal(
+        Vector2D position,
+        List<Gene> genes,
+        BehaviourIndicator behaviourIndicator,
+        EnergyParameters energyParameters,
+        int birthday,
+        int startEnergyLevel
+    ) {
         this.position = position;
         this.genes = genes;
         this.behaviourIndicator = behaviourIndicator;
         this.energyParameters = energyParameters;
         this.birthday = birthday;
 
-        this.energyLevel = this.energyParameters.startEnergy();
+        this.energyLevel = startEnergyLevel;
         this.orientation = MapDirection.random();
         this.geneIndex = new Random().nextInt(genes.size());
     }
