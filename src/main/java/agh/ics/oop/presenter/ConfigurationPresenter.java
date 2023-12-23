@@ -5,7 +5,7 @@ import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.stage.Stage;
 
-public class AppPresenter {
+public class ConfigurationPresenter {
     private int simulationID = 1;
 
     @FXML

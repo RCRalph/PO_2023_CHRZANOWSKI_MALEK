@@ -19,7 +19,7 @@ public class SimulationWindow extends Application {
     @Override
     public void start(Stage stage) throws IOException {
         FXMLLoader loader = new FXMLLoader();
-        loader.setLocation(getClass().getClassLoader().getResource("simulation-window.fxml"));
+        loader.setLocation(getClass().getClassLoader().getResource("simulation.fxml"));
         BorderPane viewRoot = loader.load();
         this.configureStage(stage, viewRoot);
 

@@ -12,9 +12,11 @@ public class SimulationApp extends Application {
     @Override
     public void start(Stage primaryStage) throws IOException {
         FXMLLoader loader = new FXMLLoader();
-        loader.setLocation(getClass().getClassLoader().getResource("simulation-app.fxml"));
+        loader.setLocation(getClass().getClassLoader().getResource("configuration.fxml"));
         BorderPane viewRoot = loader.load();
         this.configureStage(primaryStage, viewRoot);
+
+        primaryStage.setResizable(false);
 
         primaryStage.show();
     }
