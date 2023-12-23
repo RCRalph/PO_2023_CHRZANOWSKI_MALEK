@@ -11,7 +11,7 @@ abstract class AbstractChildGenesIndicator implements ChildGenesIndicator {
 
     protected final int maxMutationCount;
 
-    public AbstractChildGenesIndicator(int geneSize, int minMutationCount, int maxMutationCount) {
+    protected AbstractChildGenesIndicator(int geneSize, int minMutationCount, int maxMutationCount) {
         this.geneSize = geneSize;
         this.minMutationCount = minMutationCount;
         this.maxMutationCount = maxMutationCount;
