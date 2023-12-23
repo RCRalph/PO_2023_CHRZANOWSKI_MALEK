@@ -36,4 +36,16 @@ public record Boundary(
 
         return result;
     }
+
+    public int width() {
+        return this.upperRightCorner.x() - this.lowerLeftCorner.x();
+    }
+
+    public int height() {
+        return this.upperRightCorner.y() - this.lowerLeftCorner.y();
+    }
+
+    public boolean isInside(Vector2D position) {
+        return this.lowerLeftCorner.precedes(position) && this.upperRightCorner.follows(position);
+    }
 }

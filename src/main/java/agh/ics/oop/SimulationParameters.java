@@ -4,6 +4,7 @@ public record SimulationParameters(
     int mapWidth,
     int mapHeight,
     String worldMapVariant,
+    int tunnelCount,
     int startPlantCount,
     int plantEnergy,
     int dailyPlantGrowth,

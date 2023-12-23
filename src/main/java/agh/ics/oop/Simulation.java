@@ -10,6 +10,8 @@ import agh.ics.oop.model.element.behaviour.BehaviourIndicator;
 import agh.ics.oop.model.element.behaviour.FullPredestinationBehaviourIndicator;
 import agh.ics.oop.model.element.gene.*;
 import agh.ics.oop.model.map.Boundary;
+import agh.ics.oop.model.map.PlantGrowthIndicator;
+import agh.ics.oop.model.map.UndergroundTunnelsWorldMap;
 import agh.ics.oop.model.map.WorldMap;
 
 import java.util.ArrayList;
@@ -18,7 +20,7 @@ import java.util.List;
 public class Simulation implements Runnable {
     private final SimulationParameters parameters;
 
-    private final WorldMap map = null;
+    private final WorldMap map;
 
     private final ChildGenesIndicator childGenesIndicator;
 
@@ -64,7 +66,7 @@ public class Simulation implements Runnable {
         );
 
         // Set plant growth indicator variant
-        /*PlantGrowthIndicator plantGrowthIndicator = switch (parameters.plantGrowthIndicatorVariant()) {
+        PlantGrowthIndicator plantGrowthIndicator = null; /*switch (parameters.plantGrowthIndicatorVariant()) {
             case "Forested equators" -> ...
         }*/
 
@@ -76,14 +78,29 @@ public class Simulation implements Runnable {
             case "Back and forth" -> new BackAndForthBehaviourIndicator(parameters.geneCount());
 
             default -> throw new InvalidSimulationConfigurationException(
-                "Animal behaviour indicator should point to a valid class name"
+                "Animal behaviour indicator should indicate a valid class name"
             );
         };
 
-        // Set map
-        /*this.map = switch (parameters.worldMapVariant()) {
+        this.map = switch (parameters.worldMapVariant()) {
+            case "Underground tunnels" -> {
+                if (parameters.tunnelCount() * 2 <= (parameters.mapWidth() + 1) * (parameters.mapHeight() + 1)) {
+                    throw new InvalidSimulationConfigurationException(
+                        "Tunnel entrances count should not exceed total position count of the given map"
+                    );
+                }
 
-        }*/
+                yield new UndergroundTunnelsWorldMap(
+                    parameters.mapWidth(),
+                    parameters.mapHeight(),
+                    parameters.tunnelCount(),
+                    plantGrowthIndicator
+                );
+            }
+            default -> throw new InvalidSimulationConfigurationException(
+                "World map should indicate a valid class name"
+            );
+        };
 
         this.childGenesIndicator = switch (parameters.childGenesIndicatorVariant()) {
             case "Full randomization" -> new CompleteRandomnessChildGenesIndicator(
@@ -105,7 +122,7 @@ public class Simulation implements Runnable {
             );
 
             default -> throw new InvalidSimulationConfigurationException(
-                "Child genes indicator should point to a valid class name"
+                "Child genes indicator indicate a valid class name"
             );
         };
     }

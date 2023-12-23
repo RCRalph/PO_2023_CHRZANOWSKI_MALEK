@@ -117,6 +117,7 @@ public class SimulationPresenter implements MapChangeListener {
           0,
           0,
           0,
+          0,
           "Forested Equator",
           "Slight correction",
           0,
