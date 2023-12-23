@@ -47,6 +47,8 @@ public class Simulation implements Runnable {
             throw new InvalidSimulationConfigurationException("Animal's start energy should be greater than 0");
         } else if (parameters.plantEnergy() < 0) {
             throw new InvalidSimulationConfigurationException("Plant's energy should be greater than 0");
+        } else if (0 < parameters.healthyAnimalEnergy() && parameters.healthyAnimalEnergy() > parameters.reproductionEnergy()) {
+            throw new InvalidSimulationConfigurationException("Reproduction energy should not exceed healthy animal energy level");
         } else if (parameters.reproductionEnergy() < 0) {
             throw new InvalidSimulationConfigurationException("Reproduction energy should be greater than 0");
         } else if (parameters.minimumMutationCount() < 0) {
@@ -154,7 +156,7 @@ public class Simulation implements Runnable {
                 .stream()
                 .filter(item -> item instanceof Animal)
                 .map(item -> (Animal) item)
-                .filter(animal -> animal.getEnergyLevel() >= this.energyParameters.reproductionEnergy())
+                .filter(animal -> animal.getEnergyLevel() >= this.parameters.healthyAnimalEnergy())
                 .sorted(new DarwinistAnimalComparator())
                 .limit(2)
                 .toList();
