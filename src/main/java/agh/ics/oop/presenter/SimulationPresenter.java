@@ -4,7 +4,6 @@ import agh.ics.oop.InvalidSimulationConfigurationException;
 import agh.ics.oop.Simulation;
 import agh.ics.oop.SimulationEngine;
 import agh.ics.oop.SimulationParameters;
-import agh.ics.oop.model.RandomPositionGenerator;
 import agh.ics.oop.model.Vector2D;
 import agh.ics.oop.model.map.Boundary;
 import agh.ics.oop.model.map.MapChangeListener;
@@ -20,9 +19,7 @@ import javafx.scene.layout.ColumnConstraints;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.RowConstraints;
 
-import java.util.ArrayList;
 import java.util.List;
-import java.util.Random;
 
 public class SimulationPresenter implements MapChangeListener {
     @FXML
@@ -102,23 +99,6 @@ public class SimulationPresenter implements MapChangeListener {
     @Override
     public void mapChanged(WorldMap worldMap, String message) {
         Platform.runLater(() -> this.drawMap(message));
-    }
-
-    private List<Vector2D> getPositions() {
-        List<Vector2D> result = new ArrayList<>();
-
-        Boundary boundary = this.map.getCurrentBounds();
-
-        RandomPositionGenerator generator = new RandomPositionGenerator(
-            boundary,
-            new Random().nextInt(2, boundary.totalPositionCount() / 10)
-        );
-
-        for (Vector2D position : generator) {
-            result.add(position);
-        }
-
-        return result;
     }
 
     @FXML
