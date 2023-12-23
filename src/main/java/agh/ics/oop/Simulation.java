@@ -70,8 +70,11 @@ public class Simulation implements Runnable {
 
         this.behaviourIndicator = switch (parameters.animalBehaviourIndicatorVariant()) {
             case "Full predestination" -> new FullPredestinationBehaviourIndicator(parameters.geneCount());
+
             case "A bit of madness" -> new ABitOfMadnessBehaviourIndicator(parameters.geneCount());
+
             case "Back and forth" -> new BackAndForthBehaviourIndicator(parameters.geneCount());
+
             default -> throw new InvalidSimulationConfigurationException(
                 "Animal behaviour indicator should point to a valid class name"
             );
@@ -82,11 +85,29 @@ public class Simulation implements Runnable {
 
         }*/
 
-        // Set genes indicator variant
-        /*this.genesIndicator = switch (parameters.genesIndicatorVariant()) {
-            case "Full randomization" -> ...
-            case "Slight correction" -> ...
-        }*/
+        this.childGenesIndicator = switch (parameters.childGenesIndicatorVariant()) {
+            case "Full randomization" -> new CompleteRandomnessChildGenesIndicator(
+                parameters.geneCount(),
+                parameters.minimumMutationCount(),
+                parameters.maximumMutationCount()
+            );
+
+            case "Slight correction" -> new SlightCorrectionChildGenesGenerator(
+                parameters.geneCount(),
+                parameters.minimumMutationCount(),
+                parameters.maximumMutationCount()
+            );
+
+            case "Replacement" -> new ReplacementChildGenesIndicator(
+                parameters.geneCount(),
+                parameters.minimumMutationCount(),
+                parameters.maximumMutationCount()
+            );
+
+            default -> throw new InvalidSimulationConfigurationException(
+                "Child genes indicator should point to a valid class name"
+            );
+        };
     }
 
     private void placeAnimal(Animal animal) {
