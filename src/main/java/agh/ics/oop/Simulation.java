@@ -9,10 +9,7 @@ import agh.ics.oop.model.element.behaviour.BackAndForthBehaviourIndicator;
 import agh.ics.oop.model.element.behaviour.BehaviourIndicator;
 import agh.ics.oop.model.element.behaviour.CompletePredestinationBehaviourIndicator;
 import agh.ics.oop.model.element.gene.*;
-import agh.ics.oop.model.map.Boundary;
-import agh.ics.oop.model.map.PlantGrowthIndicator;
-import agh.ics.oop.model.map.UndergroundTunnelsWorldMap;
-import agh.ics.oop.model.map.WorldMap;
+import agh.ics.oop.model.map.*;
 
 import java.lang.reflect.InvocationTargetException;
 import java.util.*;

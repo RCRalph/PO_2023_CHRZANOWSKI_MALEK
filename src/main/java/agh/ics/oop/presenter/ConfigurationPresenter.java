@@ -3,20 +3,29 @@ package agh.ics.oop.presenter;
 import agh.ics.oop.Simulation;
 import agh.ics.oop.SimulationParameters;
 import agh.ics.oop.model.map.UndergroundTunnelsWorldMap;
+import com.google.gson.*;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.control.*;
 import javafx.scene.paint.Paint;
 
+import java.io.FileReader;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.net.URL;
 import java.util.*;
 
 public class ConfigurationPresenter implements Initializable {
     private static final String NEW_CONFIGURATION_TEXT = "Create new configuration...";
 
+    private static final String CONFIGURATION_FILE_NAME = "./configurations.json";
+
     private final Map<String, SimulationParameters> configurations = new HashMap<>();
+
+    private final ObservableList<String> observableConfigurationNames = FXCollections.observableList(new ArrayList<>());
 
     private final SimpleBooleanProperty isReadOnly = new SimpleBooleanProperty();
 
@@ -88,44 +97,69 @@ public class ConfigurationPresenter implements Initializable {
     @FXML
     private Button saveButton;
 
-    @FXML
-    private Button runButton;
-
-    private void loadSimulationConfigurations() {
-        this.configurations.clear();
-
-        this.configurations.put("Non-editable", new SimulationParameters(
-            "Non-editable",
-            0,
-            0,
-            "Underground tunnels",
-            0,
-            0,
-            0,
-            0,
-            "Slight correction",
-            0,
-            0,
-            0,
-            "Forested equator",
-            0,
-            0,
-            0,
-            0,
-            0,
-            "Full predestination"
-        ));
+    private void showErrorMessage(String message) {
+        this.messageLabel.setTextFill(Paint.valueOf("RED"));
+        this.messageLabel.setText(message);
     }
 
-    private List<String> getConfigurationVariants() {
-        List<String> result = new ArrayList<>(this.configurations.keySet());
-        result.add(NEW_CONFIGURATION_TEXT);
+    private void showMessage(String message) {
+        this.messageLabel.setTextFill(Paint.valueOf("BLACK"));
+        this.messageLabel.setText(message);
+    }
 
-        return result;
+    private void updateConfigurations(SimulationParameters parameters) {
+        this.configurations.put(parameters.configurationName(), parameters);
+        this.observableConfigurationNames.add(this.observableConfigurationNames.size() - 1, parameters.configurationName());
+    }
+
+    private void loadSimulationConfigurations() {
+        this.observableConfigurationNames.add(NEW_CONFIGURATION_TEXT);
+
+        try (FileReader reader = new FileReader(CONFIGURATION_FILE_NAME)) {
+            JsonArray jsonArray = JsonParser.parseReader(reader).getAsJsonArray();
+
+            for (JsonElement jsonElement : jsonArray) {
+                SimulationParameters parameters = SimulationParameters.fromJsonObject(jsonElement.getAsJsonObject());
+
+                if (parameters.getValidationMessage(this.configurations.keySet()).isEmpty()) {
+                    this.updateConfigurations(parameters);
+                }
+            }
+
+            this.showMessage("Loaded configurations!");
+        } catch (IOException exception) {
+            this.showErrorMessage(exception.getMessage());
+        }
+    }
+
+    @FXML
+    private void saveConfiguration() {
+        SimulationParameters parameters = this.getSimulationParameters();
+
+        Optional<String> validationMessage = parameters.getValidationMessage(this.configurations.keySet());
+        if (validationMessage.isPresent()) {
+            this.showErrorMessage(validationMessage.get());
+            return;
+        }
+
+        this.updateConfigurations(parameters);
+
+        Gson gson = new GsonBuilder().setPrettyPrinting().create();
+        JsonArray jsonArray = new JsonArray();
+        for (SimulationParameters item : this.configurations.values()) {
+            jsonArray.add(item.toJsonObject());
+        }
+
+        try (FileWriter fileWriter = new FileWriter(CONFIGURATION_FILE_NAME)) {
+            gson.toJson(jsonArray, fileWriter);
+            this.showMessage("Configuration saved!");
+        } catch (IOException exception) {
+            this.showErrorMessage(exception.getMessage());
+        }
     }
 
     private void initializeFormFields() {
-        this.configurationVariant.setItems(FXCollections.observableList(this.getConfigurationVariants()));
+        this.configurationVariant.setItems(this.observableConfigurationNames);
 
         this.configurationName.disableProperty().bind(this.isReadOnly);
 
@@ -143,18 +177,19 @@ public class ConfigurationPresenter implements Initializable {
         this.mapVariant.setItems(FXCollections.observableList(mapVariants));
         this.mapVariant.disableProperty().bind(this.isReadOnly);
         this.mapVariant.setOnAction(event -> this.shouldShowTunnels.setValue(
-            Simulation.WORLD_MAPS.get(this.mapVariant.getValue()) != UndergroundTunnelsWorldMap.class
+            Simulation.WORLD_MAPS.get(this.mapVariant.getValue()) == UndergroundTunnelsWorldMap.class
         ));
+        this.mapVariant.setValue(mapVariants.get(0));
 
-        this.tunnelCount.disableProperty().bind(this.isReadOnly.or(this.shouldShowTunnels));
+        this.tunnelCount.disableProperty().bind(this.isReadOnly.or(this.shouldShowTunnels.not()));
         this.tunnelCount.setValueFactory(
             new SpinnerValueFactory.IntegerSpinnerValueFactory(0, Integer.MAX_VALUE)
         );
 
-
         List<String> plantGrowthVariants = new ArrayList<>(Simulation.PLANT_GROWTH_INDICATORS.keySet());
         this.plantGrowthVariant.setItems(FXCollections.observableList(plantGrowthVariants));
         this.plantGrowthVariant.disableProperty().bind(this.isReadOnly);
+        this.plantGrowthVariant.setValue(plantGrowthVariants.get(0));
 
         this.initialPlantCount.disableProperty().bind(this.isReadOnly);
         this.initialPlantCount.setValueFactory(
@@ -179,6 +214,7 @@ public class ConfigurationPresenter implements Initializable {
         List<String> mutationVariants = new ArrayList<>(Simulation.CHILD_GENES_INDICATORS.keySet());
         this.mutationVariant.setItems(FXCollections.observableList(mutationVariants));
         this.mutationVariant.disableProperty().bind(this.isReadOnly);
+        this.mutationVariant.setValue(mutationVariants.get(0));
 
         this.minMutationCount.disableProperty().bind(this.isReadOnly);
         this.minMutationCount.setValueFactory(
@@ -207,7 +243,7 @@ public class ConfigurationPresenter implements Initializable {
 
         this.healthyAnimalEnergy.disableProperty().bind(this.isReadOnly);
         this.healthyAnimalEnergy.setValueFactory(
-            new SpinnerValueFactory.IntegerSpinnerValueFactory(1, Integer.MAX_VALUE)
+            new SpinnerValueFactory.IntegerSpinnerValueFactory(0, Integer.MAX_VALUE)
         );
 
         this.animalReproductionEnergy.disableProperty().bind(this.isReadOnly);
@@ -218,10 +254,9 @@ public class ConfigurationPresenter implements Initializable {
         List<String> behaviourIndicators = new ArrayList<>(Simulation.BEHAVIOUR_INDICATORS.keySet());
         this.animalBehaviourVariant.setItems(FXCollections.observableList(behaviourIndicators));
         this.animalBehaviourVariant.disableProperty().bind(this.isReadOnly);
+        this.animalBehaviourVariant.setValue(behaviourIndicators.get(0));
 
         this.saveButton.disableProperty().bind(this.isReadOnly);
-
-        this.runButton.setOnAction(event -> this.runSimulation());
     }
 
     private void setConfigurationParameters() {
@@ -253,7 +288,7 @@ public class ConfigurationPresenter implements Initializable {
 
     private SimulationParameters getSimulationParameters() {
         return new SimulationParameters(
-            this.configurationName.getText().strip(),
+            this.configurationName.getText(),
 
             this.mapWidth.getValue(),
             this.mapHeight.getValue(),
@@ -280,17 +315,15 @@ public class ConfigurationPresenter implements Initializable {
         );
     }
 
+    @FXML
     private void runSimulation() {
         SimulationParameters parameters = this.getSimulationParameters();
 
         Optional<String> validationMessage = parameters.getValidationMessage();
-
         if (validationMessage.isPresent()) {
-            this.messageLabel.setTextFill(Paint.valueOf("RED"));
-            this.messageLabel.setText(validationMessage.get());
+            this.showErrorMessage(validationMessage.get());
         } else {
-            this.messageLabel.setTextFill(Paint.valueOf("BLACK"));
-            this.messageLabel.setText("Running simulation...");
+            this.showMessage("Running simulation...");
         }
     }
 
@@ -308,6 +341,6 @@ public class ConfigurationPresenter implements Initializable {
 
         this.loadSimulationConfigurations();
         this.initializeFormFields();
-        this.configurationVariant.setValue(this.getConfigurationVariants().get(0));
+        this.configurationVariant.setValue(this.observableConfigurationNames.get(0));
     }
 }
