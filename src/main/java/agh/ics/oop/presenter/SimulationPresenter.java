@@ -104,24 +104,25 @@ public class SimulationPresenter implements MapChangeListener {
     @FXML
     private void onSimulationStartClicked(ActionEvent ignored) {
         SimulationParameters simulationParameters = new SimulationParameters(
-          0,
-          0,
-          "Planet",
-          0,
-          0,
-          0,
-          0,
-          0,
-          0,
-          0,
-          0,
-          0,
-          0,
-          0,
-          "Forested Equator",
-          "Slight correction",
-          0,
-          "Full predestination"
+            "Non-editable config",
+            0,
+            0,
+            "Planet",
+            0,
+            0,
+            0,
+            0,
+            "Slight correction",
+            0,
+            0,
+            0,
+            "Forested Equator",
+            0,
+            0,
+            0,
+            0,
+            0,
+            "Full predestination"
         );
 
         try {
