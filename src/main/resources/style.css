@@ -2,3 +2,7 @@
     -fx-font-size: 20;
     -fx-font-weight: bold;
 }
+
+.spinner:disabled, .choice-box:disabled {
+    -fx-opacity: 1;
+}
