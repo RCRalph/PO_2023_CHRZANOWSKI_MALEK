@@ -7,46 +7,65 @@ import static java.lang.Math.abs;
 
 public class Equator implements PlantGrowthIndicator{
 
+    private final List<Vector2D> preferredPositions;
+
+    private final List<Vector2D> notPreferredPositions;
+
+    public Equator(Boundary mapBoundary){
+        this.preferredPositions = getPreferredPositions(mapBoundary);
+        this.notPreferredPositions = mapBoundary.allPossiblePositions();
+        this.notPreferredPositions.removeAll(preferredPositions);
+    }
+
+
     @Override
     public Collection<Plant> indicatePlantPositions(Boundary mapBoundary, Set<Vector2D> occupiedPositions, int plantCount) {
-
-        List<Vector2D> preferredPositions = getPreferredPositions(mapBoundary);
-        List<Vector2D> notPreferredPositions = getNotPreferredPositions(preferredPositions);
+        // could use removeAll method, but its return type is uncomfortable and could lead into more code
+        List<Vector2D> availablePreferredPositions = getNotOccupiedPositions(this.preferredPositions, occupiedPositions);
+        List<Vector2D> availableNotPreferredPositions = getNotOccupiedPositions(this.notPreferredPositions, occupiedPositions);
 
         ArrayList<Plant> plants = new ArrayList<>();
 
-        Random random = new Random();
-        for(int i=0; i<plantCount;i++){
+        Random r = new Random();
+        int plantsGrown = 0;
+        Vector2D drawnPosition;
 
-            int draw = random.nextInt(100);
-            Vector2D drawnPosition;
+        while (
+                plantsGrown < plantCount && !availablePreferredPositions.isEmpty() && !availableNotPreferredPositions.isEmpty()
+        ) {
 
-            if (draw < 80){
-                drawnPosition = preferredPositions.remove(0);
+            if (preferredPositions.isEmpty()){
+                drawnPosition =  availableNotPreferredPositions.remove(0);
+
+            } else if (notPreferredPositions.isEmpty()){
+                drawnPosition =  availablePreferredPositions.remove(0);
+
             } else {
-                drawnPosition = notPreferredPositions.remove(0);
+                drawnPosition = r.nextInt(100) < 80 ? availablePreferredPositions.remove(0) : availableNotPreferredPositions.remove(0);
             }
 
-            if (!occupiedPositions.contains(drawnPosition)){
-                plants.add(new Plant(drawnPosition));
-            }
+            plantsGrown++;
+            plants.add(new Plant(drawnPosition));
+
         }
 
         return  Collections.unmodifiableList(plants);
     }
 
     private List<Vector2D> getPreferredPositions(Boundary mapBoundary){
-        float equatorLine  = (float) (mapBoundary.lowerLeftCorner().y() + mapBoundary.lowerLeftCorner().y()) /2;
+        float equatorLine  = (float) (mapBoundary.lowerLeftCorner().y() + mapBoundary.upperRightCorner().y()) / 2;
 
-        return mapBoundary.allPossiblePositions().stream()
-                .sorted((pos1,pos2)->Float.compare(abs(pos1.y()-equatorLine),abs(pos2.y()-equatorLine)))
-                .limit((long) (0.2*mapBoundary.allPossiblePositions().size()))
+        return mapBoundary.allPossiblePositions()
+                .stream()
+                .sorted((pos1,pos2)->Float.compare(abs(pos1.y() - equatorLine),abs(pos2.y() - equatorLine)))
+                .limit( (long) (0.2 * mapBoundary.allPossiblePositions().size()))
                 .toList();
     }
 
-    private List<Vector2D> getNotPreferredPositions(List<Vector2D> preferredPositions){
-        return preferredPositions.stream()
-                .filter(position -> !preferredPositions.contains(position))
+    private List<Vector2D> getNotOccupiedPositions(List<Vector2D> positions, Set<Vector2D> occupiedPositions){
+        return positions
+                .stream()
+                .filter(position -> !occupiedPositions.contains(position))
                 .toList();
     }
 }
