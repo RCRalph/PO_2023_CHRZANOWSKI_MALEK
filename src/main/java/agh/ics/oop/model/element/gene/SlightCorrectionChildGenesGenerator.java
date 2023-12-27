@@ -10,11 +10,12 @@ public class SlightCorrectionChildGenesGenerator extends AbstractChildGenesIndic
     @Override
     protected void mutateGenes(List<Gene> genes) {
         for (int index : this.getMutationIndexSet()){
-            if (this.random.nextBoolean()){
-                genes.set(index, genes.get(index).next());
-            } else {
-                genes.set(index, genes.get(index).previous());
-            }
+            genes.set(
+                index,
+                this.random.nextBoolean() ?
+                    genes.get(index).next() :
+                    genes.get(index).previous()
+            );
         }
     }
 }
