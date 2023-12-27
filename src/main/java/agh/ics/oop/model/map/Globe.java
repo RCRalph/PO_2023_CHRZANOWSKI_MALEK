@@ -21,55 +21,33 @@ public class Globe extends AbstractWorldMap{
         Vector2D positionAfterMove = currentPose.position().add(currentPose.orientation().toSquareVector());
 
         Vector2D lowerLeft = super.boundary.lowerLeftCorner();
-        Vector2D lowerRight = new Vector2D(super.boundary.upperRightCorner().x(), super.boundary.lowerLeftCorner().y());
         Vector2D upperRight = super.boundary.upperRightCorner();
-        Vector2D upperLeft = new Vector2D(super.boundary.lowerLeftCorner().x(), super.boundary.upperRightCorner().y());
 
-        Pose resultPose;
+        int resultCordX;
+        int resultCordY = positionAfterMove.y();
+        MapDirection resultOrientation = currentPose.orientation();
 
-        if (positionAfterMove.equals(lowerLeft.add(MapDirection.SOUTH_WEST.toSquareVector()))){
-            resultPose = new Pose(
-                    super.boundary.upperRightCorner(),
-                    currentPose.orientation()
-            );
-        } else if (positionAfterMove.equals(upperRight.add(MapDirection.NORTH_EAST.toSquareVector()))){
-            resultPose = new Pose(
-                    super.boundary.upperRightCorner(),
-                    currentPose.orientation()
-            );
-        } else if (positionAfterMove.equals(upperLeft.add(MapDirection.NORTH_WEST.toSquareVector()))){
-            resultPose = new Pose(
-                    lowerRight,
-                    currentPose.orientation()
-            );
-        } else if (positionAfterMove.equals(lowerRight.add(MapDirection.SOUTH_EAST.toSquareVector()))) {
-            resultPose = new Pose(
-                    upperLeft,
-                    currentPose.orientation()
-            );
-        } else if (positionAfterMove.x() > upperRight.x()) {
-            resultPose = new Pose(
-                    new Vector2D(lowerLeft.x(), positionAfterMove.y()),
-                    currentPose.orientation()
-            );
-        } else if (positionAfterMove.x() < lowerLeft.x()){
-            resultPose = new Pose(
-                    new Vector2D(upperRight.x(), positionAfterMove.y()),
-                    currentPose.orientation()
-            );
-        } else if (positionAfterMove.y() > upperRight.y() || positionAfterMove.y() < lowerLeft.y()) {
-            resultPose = new Pose(
-                    currentPose.position(),
-                    currentPose.orientation().rotateByGene(Gene.BACKWARD)
-            );
+        if (positionAfterMove.x() > upperRight.x()) {
+            resultCordX = lowerLeft.x();
+        } else if (positionAfterMove.x() < lowerLeft.x()) {
+            resultCordX = upperRight.x();
         } else {
-            resultPose = new Pose(
-                    positionAfterMove,
-                    currentPose.orientation()
-            );
+            resultCordX = positionAfterMove.x();
         }
 
-        return  resultPose;
+        if (positionAfterMove.y() > upperRight.y() || positionAfterMove.y() < lowerLeft.y()) {
+
+            resultCordY = currentPose.position().y();
+            resultOrientation = currentPose.orientation().rotateByGene(Gene.BACKWARD);
+
+            // it is equivalent to: resultCordX == positionAfterMove.x(), but more straightforward
+            if (resultCordX <= upperRight.x() && resultCordX >= lowerLeft.x()){
+                resultCordX = currentPose.position().x();
+            }
+
+        }
+
+        return  new Pose(new Vector2D(resultCordX, resultCordY), resultOrientation);
     }
 }
 
