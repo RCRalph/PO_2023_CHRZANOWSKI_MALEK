@@ -2,10 +2,10 @@ package agh.ics.oop.model.element.behaviour;
 
 import agh.ics.oop.model.element.Animal;
 
-public class FullPredestinationBehaviourIndicator implements BehaviourIndicator {
+public class CompletePredestinationBehaviourIndicator implements BehaviourIndicator {
     private final int geneCount;
 
-    public FullPredestinationBehaviourIndicator(int geneCount) {
+    public CompletePredestinationBehaviourIndicator(int geneCount) {
         this.geneCount = geneCount;
     }
 

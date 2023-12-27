@@ -39,7 +39,7 @@ abstract class AbstractWorldMap implements WorldMap {
         this.mapChanged(String.format("Placed animal at %s", animal.getPosition()));
     }
 
-    private Set<Vector2D> invalidPlantPositions() {
+    protected Set<Vector2D> invalidPlantPositions() {
         return Collections.unmodifiableSet(this.plants.keySet());
     }
 
