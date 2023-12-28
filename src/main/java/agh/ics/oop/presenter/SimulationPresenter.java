@@ -18,6 +18,8 @@ import javafx.scene.layout.GridPane;
 import javafx.scene.layout.RowConstraints;
 
 public class SimulationPresenter implements MapChangeListener {
+    public static final int CELL_SIZE = 75;
+
     @FXML
     private Label mapMessage;
 
@@ -57,25 +59,25 @@ public class SimulationPresenter implements MapChangeListener {
 
     private void drawCoordinates(Boundary boundary) {
         this.addToGridPane("y\\x", 0, 0);
-        this.mapContent.getColumnConstraints().add(new ColumnConstraints(25));
-        this.mapContent.getRowConstraints().add(new RowConstraints(25));
+        this.mapContent.getColumnConstraints().add(new ColumnConstraints(CELL_SIZE));
+        this.mapContent.getRowConstraints().add(new RowConstraints(CELL_SIZE));
 
         int horizontalCoordinateCount = boundary.upperRightCorner().x() - boundary.lowerLeftCorner().x() + 1,
             verticalCoordinateCount = boundary.upperRightCorner().y() - boundary.lowerLeftCorner().y() + 1;
 
         for (int i = 0; i < horizontalCoordinateCount; i++) {
-            this.mapContent.getColumnConstraints().add(new ColumnConstraints(25));
+            this.mapContent.getColumnConstraints().add(new ColumnConstraints(CELL_SIZE));
             this.addToGridPane(Integer.toString(i + boundary.lowerLeftCorner().x()), i + 1, 0);
         }
 
         for (int i = 0; i < verticalCoordinateCount; i++) {
-            this.mapContent.getRowConstraints().add(new RowConstraints(25));
+            this.mapContent.getRowConstraints().add(new RowConstraints(CELL_SIZE));
             this.addToGridPane(Integer.toString(boundary.upperRightCorner().y() - i), 0, i + 1);
         }
     }
 
     private void drawMap(WorldMap map, String message) {
-        this.mapMessage.setText(message);
+        this.mapMessage.setText(String.format("Day %d", this.simulation.getCurrentDay()));
 
         // Clear all WorldElements from map
         this.mapContent.getChildren().retainAll(this.mapContent.getChildren().get(0));
@@ -109,5 +111,9 @@ public class SimulationPresenter implements MapChangeListener {
 
     public void start() throws InterruptedException {
         this.simulationThread.start();
+    }
+
+    public void pause() throws InterruptedException {
+        this.simulationThread.wait();
     }
 }

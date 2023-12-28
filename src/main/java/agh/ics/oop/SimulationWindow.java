@@ -2,6 +2,7 @@ package agh.ics.oop;
 
 import agh.ics.oop.presenter.SimulationPresenter;
 import javafx.application.Application;
+import javafx.application.Platform;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Scene;
 import javafx.scene.image.Image;
@@ -9,6 +10,7 @@ import javafx.scene.layout.BorderPane;
 import javafx.stage.Stage;
 
 import java.io.IOException;
+import java.util.concurrent.TimeUnit;
 
 public class SimulationWindow extends Application {
     private final String title;
@@ -42,7 +44,7 @@ public class SimulationWindow extends Application {
     private void configureStage(Stage primaryStage, BorderPane viewRoot) {
         Scene scene = new Scene(viewRoot);
         primaryStage.setScene(scene);
-        primaryStage.getIcons().add(new Image("laciasweety.png"));
+        primaryStage.getIcons().add(new Image("images/laciasweety.png"));
         primaryStage.setTitle(this.title);
         primaryStage.minWidthProperty().bind(viewRoot.minWidthProperty());
         primaryStage.minHeightProperty().bind(viewRoot.minHeightProperty());

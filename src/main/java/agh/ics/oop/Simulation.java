@@ -231,6 +231,10 @@ public class Simulation implements Runnable {
         this.worldMap.unsubscribe(listener);
     }
 
+    public int getCurrentDay() {
+        return this.currentDay;
+    }
+
     @Override
     public void run() {
         this.generateAnimals();

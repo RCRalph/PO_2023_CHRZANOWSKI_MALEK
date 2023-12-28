@@ -7,6 +7,7 @@ import agh.ics.oop.model.Vector2D;
 import agh.ics.oop.model.element.behaviour.BehaviourIndicator;
 import agh.ics.oop.model.element.gene.Gene;
 import agh.ics.oop.model.element.gene.ReproductionInformation;
+import agh.ics.oop.presenter.SimulationPresenter;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 
@@ -15,6 +16,25 @@ import java.util.List;
 import java.util.Random;
 
 public class Animal implements WorldElement {
+    private static final List<Image> ANIMAL_IMAGES = List.of(
+        new Image("images/laciaalien.png"),
+        new Image("images/laciaangy.png"),
+        new Image("images/laciababy.png"),
+        new Image("images/laciaconfused.png"),
+        new Image("images/laciaderpy.png"),
+        new Image("images/laciadisgusted.png"),
+        new Image("images/laciaeepy.png"),
+        new Image("images/laciahidy.png"),
+        new Image("images/laciajudgy.png"),
+        new Image("images/lacialovely.png"),
+        new Image("images/laciamlem.png"),
+        new Image("images/laciasweety.png"),
+        new Image("images/laciatired.png"),
+        new Image("images/laciawtf.png")
+    );
+
+    private static final int IMAGE_SIZE = SimulationPresenter.CELL_SIZE * 4 / 5;
+
     private final List<Gene> genes;
 
     private final int birthday;
@@ -35,7 +55,7 @@ public class Animal implements WorldElement {
 
     private int deathDay = -1;
 
-    private final ImageView imageView = new ImageView(new Image("images/laciamlem.png"));
+    private final ImageView imageView = new ImageView(ANIMAL_IMAGES.get(new Random().nextInt(ANIMAL_IMAGES.size())));
 
     public Animal(
         Vector2D position,
@@ -65,8 +85,8 @@ public class Animal implements WorldElement {
         this.orientation = MapDirection.random();
         this.geneIndex = new Random().nextInt(genes.size());
 
-        this.imageView.setFitWidth(20);
-        this.imageView.setFitHeight(20);
+        this.imageView.setFitWidth(IMAGE_SIZE);
+        this.imageView.setFitHeight(IMAGE_SIZE);
     }
 
     @Override
