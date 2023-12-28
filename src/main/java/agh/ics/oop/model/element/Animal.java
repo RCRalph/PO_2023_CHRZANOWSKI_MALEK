@@ -7,6 +7,8 @@ import agh.ics.oop.model.Vector2D;
 import agh.ics.oop.model.element.behaviour.BehaviourIndicator;
 import agh.ics.oop.model.element.gene.Gene;
 import agh.ics.oop.model.element.gene.ReproductionInformation;
+import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
 
 import java.util.Collections;
 import java.util.List;
@@ -32,6 +34,8 @@ public class Animal implements WorldElement {
     private int childCount = 0;
 
     private int deathDay = -1;
+
+    private final ImageView imageView = new ImageView(new Image("images/laciamlem.png"));
 
     public Animal(
         Vector2D position,
@@ -60,6 +64,9 @@ public class Animal implements WorldElement {
         this.energyLevel = startEnergyLevel;
         this.orientation = MapDirection.random();
         this.geneIndex = new Random().nextInt(genes.size());
+
+        this.imageView.setFitWidth(20);
+        this.imageView.setFitHeight(20);
     }
 
     @Override
@@ -89,6 +96,11 @@ public class Animal implements WorldElement {
     @Override
     public Vector2D getPosition() {
         return this.position;
+    }
+
+    @Override
+    public ImageView getImageView() {
+        return this.imageView;
     }
 
     public MapDirection getOrientation() {

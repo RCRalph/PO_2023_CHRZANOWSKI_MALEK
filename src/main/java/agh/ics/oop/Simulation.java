@@ -12,7 +12,10 @@ import agh.ics.oop.model.element.gene.*;
 import agh.ics.oop.model.map.*;
 
 import java.lang.reflect.InvocationTargetException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.TimeUnit;
 
 public class Simulation implements Runnable {
     public static final Map<String, Class<? extends PlantGrowthIndicator>> PLANT_GROWTH_INDICATORS = Map.of(
@@ -67,7 +70,7 @@ public class Simulation implements Runnable {
             InvocationTargetException exception
         ) {
             throw new InvalidSimulationConfigurationException(
-                "Invalid plant growth indicator implementation: " + exception.getMessage()
+                "Invalid plant growth indicator implementation: " + exception
             );
         }
     }
@@ -85,7 +88,7 @@ public class Simulation implements Runnable {
                     .newInstance(this.boundary, plantGrowthIndicator);
             } else if (worldMap == UndergroundTunnelsWorldMap.class) {
                 return worldMap
-                    .getDeclaredConstructor(Boundary.class, Integer.class, PlantGrowthIndicator.class)
+                    .getDeclaredConstructor(Boundary.class, int.class, PlantGrowthIndicator.class)
                     .newInstance(this.boundary, parameters.tunnelCount(), plantGrowthIndicator);
             } else {
                 throw new InvalidSimulationConfigurationException("World map variant should point to a valid class");
@@ -97,7 +100,7 @@ public class Simulation implements Runnable {
             InvocationTargetException exception
         ) {
             throw new InvalidSimulationConfigurationException(
-                "Invalid world map implementation: " + exception.getMessage()
+                "Invalid world map implementation: " + exception
             );
         }
     }
@@ -108,7 +111,7 @@ public class Simulation implements Runnable {
         try {
             return BEHAVIOUR_INDICATORS
                 .get(parameters.animalBehaviourIndicatorVariant())
-                .getDeclaredConstructor(Integer.class)
+                .getDeclaredConstructor(int.class)
                 .newInstance(parameters.geneCount());
         } catch (
             NoSuchMethodException |
@@ -117,7 +120,7 @@ public class Simulation implements Runnable {
             InvocationTargetException exception
         ) {
             throw new InvalidSimulationConfigurationException(
-                "Invalid behaviour indicator implementation: " + exception.getMessage()
+                "Invalid behaviour indicator implementation: " + exception
             );
         }
     }
@@ -128,7 +131,7 @@ public class Simulation implements Runnable {
         try {
             return CHILD_GENES_INDICATORS
                 .get(parameters.childGenesIndicatorVariant())
-                .getDeclaredConstructor(Integer.class, Integer.class, Integer.class)
+                .getDeclaredConstructor(int.class, int.class, int.class)
                 .newInstance(
                     parameters.geneCount(),
                     parameters.minimumMutationCount(),
@@ -141,7 +144,7 @@ public class Simulation implements Runnable {
             InvocationTargetException exception
         ) {
             throw new InvalidSimulationConfigurationException(
-                "Invalid child genes indicator implementation: " + exception.getMessage()
+                "Invalid child genes indicator implementation: " + exception
             );
         }
     }
@@ -220,19 +223,32 @@ public class Simulation implements Runnable {
         }
     }
 
+    public void subscribe(MapChangeListener listener) {
+        this.worldMap.subscribe(listener);
+    }
+
+    public void unsubscribe(MapChangeListener listener) {
+        this.worldMap.unsubscribe(listener);
+    }
+
     @Override
     public void run() {
         this.generateAnimals();
         this.worldMap.growPlants(this.parameters.startPlantCount());
 
-        while (this.worldMap.aliveAnimalCount() > 0) {
+        while (!Thread.currentThread().isInterrupted() && this.worldMap.aliveAnimalCount() > 0) {
             this.currentDay++;
+            System.out.println(Thread.currentThread().isInterrupted());
 
             this.worldMap.removeDeadAnimals(this.currentDay);
             this.worldMap.moveAnimals();
             this.worldMap.consumePlants();
             this.reproduceAnimals();
             this.worldMap.growPlants(this.parameters.dailyPlantGrowth());
+
+            try {
+                TimeUnit.SECONDS.sleep(1);
+            } catch (InterruptedException ignored) {}
         }
     }
 }
