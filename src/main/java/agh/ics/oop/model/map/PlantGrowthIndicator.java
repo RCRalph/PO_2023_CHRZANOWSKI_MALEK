@@ -7,5 +7,5 @@ import java.util.Collection;
 import java.util.Set;
 
 public interface PlantGrowthIndicator {
-    Collection<Plant> getPlants(Set<Vector2D> occupiedPositions);
+    Collection<Plant> getPlants(Set<Vector2D> occupiedPositions, int plantCount);
 }

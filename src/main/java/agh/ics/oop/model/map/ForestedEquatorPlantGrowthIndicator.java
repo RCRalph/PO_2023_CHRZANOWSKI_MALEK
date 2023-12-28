@@ -2,23 +2,21 @@ package agh.ics.oop.model.map;
 
 import agh.ics.oop.model.Vector2D;
 import agh.ics.oop.model.element.Plant;
+
 import java.util.*;
+
 import static java.lang.Math.abs;
 import static java.lang.Math.round;
 
 public class ForestedEquatorPlantGrowthIndicator implements PlantGrowthIndicator{
-    private final int dailyPlantCount;
-
     private final Random random = new Random();
 
     private final List<Vector2D> desirablePositions;
 
     private final List<Vector2D> undesirablePositions;
 
-    public ForestedEquatorPlantGrowthIndicator(Boundary boundary, int dailyPlantCount) {
-        this.dailyPlantCount = dailyPlantCount;
-
-        long doubledEquatorYCoordinate = boundary.lowerLeftCorner().y() + boundary.upperRightCorner().y(),
+    public ForestedEquatorPlantGrowthIndicator(Boundary boundary) {
+        long doubledEquatorYCoordinate = (long)boundary.lowerLeftCorner().y() + boundary.upperRightCorner().y(),
              desirablePositionCount = round(0.2 * boundary.allPossiblePositions().size());
 
         List<Vector2D> allPositions = boundary.allPossiblePositions();
@@ -36,27 +34,30 @@ public class ForestedEquatorPlantGrowthIndicator implements PlantGrowthIndicator
             .toList();
     }
 
-    @Override
-    public Collection<Plant> getPlants(Set<Vector2D> occupiedPositions) {
-        List<Vector2D> availableDesirablePositions = new LinkedList<>(this.desirablePositions);
-        availableDesirablePositions.removeAll(occupiedPositions);
+    public Collection<Plant> getPlants(Set<Vector2D> occupiedPositions, int plantCount) {
+        List<Vector2D> availableDesirablePositions = new ArrayList<>(this.desirablePositions);
+        List<Vector2D> availableUndesirablePositions = new ArrayList<>(this.undesirablePositions);
 
-        List<Vector2D> availableUndesirablePositions = new LinkedList<>(this.undesirablePositions);
+        availableDesirablePositions.removeAll(occupiedPositions);
         availableUndesirablePositions.removeAll(occupiedPositions);
 
         List<Plant> result = new ArrayList<>();
-        for (int i = 0; i < this.dailyPlantCount; i++) {
+        for (int i = 0; i < plantCount; i++) {
             if (availableDesirablePositions.isEmpty() && availableUndesirablePositions.isEmpty()) break;
 
             Vector2D drawnPosition;
             if (availableDesirablePositions.isEmpty()) {
-                drawnPosition = availableUndesirablePositions.remove(0);
+                drawnPosition = availableUndesirablePositions.remove(
+                    this.random.nextInt(availableUndesirablePositions.size())
+                );
             } else if (availableUndesirablePositions.isEmpty()){
-                drawnPosition = availableDesirablePositions.remove(0);
+                drawnPosition = availableDesirablePositions.remove(
+                    this.random.nextInt(availableDesirablePositions.size())
+                );
             } else {
-                drawnPosition = this.random.nextInt(5) < 4 ? // 80% probability
-                    availableDesirablePositions.remove(0) :
-                    availableUndesirablePositions.remove(0);
+                drawnPosition = this.random.nextBoolean() ? // 80% probability
+                    availableDesirablePositions.remove(this.random.nextInt(availableDesirablePositions.size())) :
+                    availableUndesirablePositions.remove(this.random.nextInt(availableUndesirablePositions.size()));
             }
 
             result.add(new Plant(drawnPosition));

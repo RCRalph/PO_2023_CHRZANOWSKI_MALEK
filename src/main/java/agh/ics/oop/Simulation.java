@@ -58,8 +58,8 @@ public class Simulation implements Runnable {
         try {
             return PLANT_GROWTH_INDICATORS
                 .get(parameters.plantGrowthIndicatorVariant())
-                .getDeclaredConstructor(Boundary.class, Integer.class)
-                .newInstance(this.boundary, parameters.dailyPlantGrowth());
+                .getDeclaredConstructor(Boundary.class)
+                .newInstance(this.boundary);
         } catch (
             NoSuchMethodException |
             InstantiationException |

@@ -37,7 +37,7 @@ abstract class AbstractWorldMap implements WorldMap {
 
     @Override
     public void growPlants(int plantCount) {
-        for (Plant plant : this.plantGrowthIndicator.getPlants(this.invalidPlantPositions())) {
+        for (Plant plant : this.plantGrowthIndicator.getPlants(this.invalidPlantPositions(), plantCount)) {
             this.plants.put(plant.getPosition(), plant);
             this.mapChanged(String.format("Placed plant at %s", plant.getPosition()));
         }
