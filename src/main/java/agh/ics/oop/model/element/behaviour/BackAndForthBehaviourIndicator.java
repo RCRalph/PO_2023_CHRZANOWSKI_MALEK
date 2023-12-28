@@ -9,7 +9,7 @@ import java.util.Set;
 public class BackAndForthBehaviourIndicator implements BehaviourIndicator {
     private final int geneCount;
 
-    private final Set<Animal> animalsWhichGenesMoveRight = Collections.newSetFromMap(new IdentityHashMap<>());
+    private final Set<Animal> animalsWhichGenesMoveLeft = Collections.newSetFromMap(new IdentityHashMap<>());
 
     public BackAndForthBehaviourIndicator(int geneCount) {
         this.geneCount = geneCount;
@@ -17,14 +17,12 @@ public class BackAndForthBehaviourIndicator implements BehaviourIndicator {
 
     @Override
     public int indicateGeneIndex(Animal animal) {
-        int currentIndex = animal.getGeneIndex() + (this.animalsWhichGenesMoveRight.contains(animal) ? 1 : -1);
-
-        if (currentIndex == 0) {
-            this.animalsWhichGenesMoveRight.add(animal);
-        } else if (currentIndex == this.geneCount - 1) {
-            this.animalsWhichGenesMoveRight.remove(animal);
+        if (animal.getGeneIndex() == 0) {
+            this.animalsWhichGenesMoveLeft.remove(animal);
+        } else if (animal.getGeneIndex() == this.geneCount - 1) {
+            this.animalsWhichGenesMoveLeft.add(animal);
         }
 
-        return currentIndex;
+        return animal.getGeneIndex() + (this.animalsWhichGenesMoveLeft.contains(animal) ? -1 : 1);
     }
 }

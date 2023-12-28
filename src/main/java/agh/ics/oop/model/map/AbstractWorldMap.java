@@ -78,13 +78,18 @@ abstract class AbstractWorldMap implements WorldMap {
 
     @Override
     public void consumePlants() {
-        for (Vector2D plantPosition : this.plants.keySet()) {
-            this.animals.animalsAt(plantPosition)
+        List<Vector2D> positions = this.plants.keySet()
+            .stream()
+            .filter(this.animals::isOccupied)
+            .toList();
+
+        for (Vector2D position : positions) {
+            this.animals.animalsAt(position)
                 .stream()
                 .min(new DarwinistAnimalComparator())
                 .ifPresent(animal -> {
                     animal.consumePlant();
-                    this.plants.remove(plantPosition);
+                    this.plants.remove(position);
                 });
         }
     }
@@ -96,10 +101,14 @@ abstract class AbstractWorldMap implements WorldMap {
 
     @Override
     public List<WorldElement> objectsAt(Vector2D position) {
-        List<WorldElement> result = new ArrayList<>(this.animals.animalsAt(position));
+        List<WorldElement> result = new ArrayList<>();
 
         if (this.plants.containsKey(position)) {
             result.add(this.plants.get(position));
+        }
+
+        if (this.animals.isOccupied(position)) {
+            result.addAll(this.animals.animalsAt(position));
         }
 
         return result;

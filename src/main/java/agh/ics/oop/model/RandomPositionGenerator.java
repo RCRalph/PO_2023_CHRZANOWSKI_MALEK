@@ -3,7 +3,6 @@ package agh.ics.oop.model;
 import agh.ics.oop.model.map.Boundary;
 
 import java.util.Collections;
-import java.util.Iterator;
 import java.util.List;
 
 public class RandomPositionGenerator {
