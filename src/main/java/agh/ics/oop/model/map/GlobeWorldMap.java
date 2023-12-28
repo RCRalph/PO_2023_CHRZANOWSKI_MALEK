@@ -5,16 +5,10 @@ import agh.ics.oop.model.Pose;
 import agh.ics.oop.model.Vector2D;
 import agh.ics.oop.model.element.gene.Gene;
 
-public class Globe extends AbstractWorldMap{
-
-    public Globe(
-            int mapWidth,
-            int mapHeight,
-            PlantGrowthIndicator plantGrowthIndicator
-    ) {
-        super(mapWidth, mapHeight, plantGrowthIndicator);
+public class GlobeWorldMap extends AbstractWorldMap {
+    public GlobeWorldMap(Boundary boundary, PlantGrowthIndicator plantGrowthIndicator) {
+        super(boundary, plantGrowthIndicator);
     }
-
 
     @Override
     public Pose indicatePose(Pose currentPose) {
@@ -24,9 +18,6 @@ public class Globe extends AbstractWorldMap{
         Vector2D upperRight = super.boundary.upperRightCorner();
 
         int resultCordX;
-        int resultCordY = positionAfterMove.y();
-        MapDirection resultOrientation = currentPose.orientation();
-
         if (positionAfterMove.x() > upperRight.x()) {
             resultCordX = lowerLeft.x();
         } else if (positionAfterMove.x() < lowerLeft.x()) {
@@ -35,8 +26,9 @@ public class Globe extends AbstractWorldMap{
             resultCordX = positionAfterMove.x();
         }
 
+        int resultCordY = positionAfterMove.y();
+        MapDirection resultOrientation = currentPose.orientation();
         if (positionAfterMove.y() > upperRight.y() || positionAfterMove.y() < lowerLeft.y()) {
-
             resultCordY = currentPose.position().y();
             resultOrientation = currentPose.orientation().rotateByGene(Gene.BACKWARD);
 
@@ -44,10 +36,12 @@ public class Globe extends AbstractWorldMap{
             if (resultCordX <= upperRight.x() && resultCordX >= lowerLeft.x()){
                 resultCordX = currentPose.position().x();
             }
-
         }
 
-        return  new Pose(new Vector2D(resultCordX, resultCordY), resultOrientation);
+        return new Pose(
+            new Vector2D(resultCordX, resultCordY),
+            resultOrientation
+        );
     }
 }
 

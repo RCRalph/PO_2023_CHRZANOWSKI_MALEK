@@ -20,16 +20,8 @@ abstract class AbstractWorldMap implements WorldMap {
 
     protected final PlantGrowthIndicator plantGrowthIndicator;
 
-    public AbstractWorldMap(
-        int mapWidth,
-        int mapHeight,
-        PlantGrowthIndicator plantGrowthIndicator
-    ) {
-        this.boundary = new Boundary(
-            new Vector2D(0, 0),
-            new Vector2D(mapWidth - 1, mapHeight - 1)
-        );
-
+    public AbstractWorldMap(Boundary boundary, PlantGrowthIndicator plantGrowthIndicator) {
+        this.boundary = boundary;
         this.plantGrowthIndicator = plantGrowthIndicator;
     }
 
@@ -45,13 +37,7 @@ abstract class AbstractWorldMap implements WorldMap {
 
     @Override
     public void growPlants(int plantCount) {
-        Collection<Plant> plantsToPlace = this.plantGrowthIndicator.indicatePlantPositions(
-            this.boundary,
-            this.invalidPlantPositions(),
-            plantCount
-        );
-
-        for (Plant plant : plantsToPlace) {
+        for (Plant plant : this.plantGrowthIndicator.getPlants(this.invalidPlantPositions())) {
             this.plants.put(plant.getPosition(), plant);
             this.mapChanged(String.format("Placed plant at %s", plant.getPosition()));
         }

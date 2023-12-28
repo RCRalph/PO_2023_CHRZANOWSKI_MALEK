@@ -7,9 +7,5 @@ import java.util.Collection;
 import java.util.Set;
 
 public interface PlantGrowthIndicator {
-    Collection<Plant> indicatePlantPositions(
-        Boundary mapBoundary,
-        Set<Vector2D> occupiedPositions,
-        int plantCount
-    );
+    Collection<Plant> getPlants(Set<Vector2D> occupiedPositions);
 }

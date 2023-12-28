@@ -16,10 +16,11 @@ import java.util.*;
 
 public class Simulation implements Runnable {
     public static final Map<String, Class<? extends PlantGrowthIndicator>> PLANT_GROWTH_INDICATORS = Map.of(
-
+        "Forested equator", ForestedEquatorPlantGrowthIndicator.class
     );
 
     public static final Map<String, Class<? extends WorldMap>> WORLD_MAPS = Map.of(
+        "Globe", GlobeWorldMap.class,
         "Underground tunnels", UndergroundTunnelsWorldMap.class
     );
 
@@ -47,6 +48,8 @@ public class Simulation implements Runnable {
 
     private final EnergyParameters energyParameters;
 
+    private final Boundary boundary;
+
     private int currentDay = 0;
 
     private PlantGrowthIndicator getPlantGrowthIndicator(
@@ -55,12 +58,8 @@ public class Simulation implements Runnable {
         try {
             return PLANT_GROWTH_INDICATORS
                 .get(parameters.plantGrowthIndicatorVariant())
-                .getDeclaredConstructor(Integer.class, Integer.class, Integer.class)
-                .newInstance(
-                    parameters.geneCount(),
-                    parameters.minimumMutationCount(),
-                    parameters.maximumMutationCount()
-                );
+                .getDeclaredConstructor(Boundary.class, Integer.class)
+                .newInstance(this.boundary, parameters.dailyPlantGrowth());
         } catch (
             NoSuchMethodException |
             InstantiationException |
@@ -80,14 +79,14 @@ public class Simulation implements Runnable {
         Class<? extends WorldMap> worldMap = WORLD_MAPS.get(parameters.worldMapVariant());
 
         try {
-            if (worldMap == UndergroundTunnelsWorldMap.class) {
-                return worldMap.getDeclaredConstructor(
-                    Integer.class, Integer.class,
-                    Integer.class, PlantGrowthIndicator.class
-                ).newInstance(
-                    parameters.mapWidth(), parameters.mapHeight(),
-                    parameters.tunnelCount(), plantGrowthIndicator
-                );
+            if (worldMap == GlobeWorldMap.class) {
+                return worldMap
+                    .getDeclaredConstructor(Boundary.class, PlantGrowthIndicator.class)
+                    .newInstance(this.boundary, plantGrowthIndicator);
+            } else if (worldMap == UndergroundTunnelsWorldMap.class) {
+                return worldMap
+                    .getDeclaredConstructor(Boundary.class, Integer.class, PlantGrowthIndicator.class)
+                    .newInstance(this.boundary, parameters.tunnelCount(), plantGrowthIndicator);
             } else {
                 throw new InvalidSimulationConfigurationException("World map variant should point to a valid class");
             }
@@ -148,8 +147,6 @@ public class Simulation implements Runnable {
     }
 
     public Simulation(SimulationParameters parameters) throws InvalidSimulationConfigurationException {
-        // Java doesn't allow throwing checked exceptions outside lambda expressions,
-        // so this check unfortunately has to be done this way
         if (parameters.getValidationMessage().isPresent()) {
             throw new InvalidSimulationConfigurationException(parameters.getValidationMessage().get());
         }
@@ -161,6 +158,11 @@ public class Simulation implements Runnable {
             this.parameters.animalMoveEnergy(),
             this.parameters.plantEnergy(),
             this.parameters.reproductionEnergy()
+        );
+
+        this.boundary = new Boundary(
+            new Vector2D(0, 0),
+            new Vector2D(parameters.mapWidth() - 1, parameters.mapHeight() - 1)
         );
 
         this.worldMap = this.getWorldMap(parameters, this.getPlantGrowthIndicator(parameters));
