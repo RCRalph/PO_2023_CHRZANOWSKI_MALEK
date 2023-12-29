@@ -1,8 +1,8 @@
 package agh.ics.oop.presenter;
 
 import agh.ics.oop.InvalidSimulationConfigurationException;
-import agh.ics.oop.Simulation;
-import agh.ics.oop.SimulationParameters;
+import agh.ics.oop.simulation.Simulation;
+import agh.ics.oop.simulation.SimulationParameters;
 import agh.ics.oop.SimulationWindow;
 import agh.ics.oop.model.map.UndergroundTunnelsWorldMap;
 import com.google.gson.*;

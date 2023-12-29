@@ -1,26 +1,37 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<?import javafx.scene.control.Label?>
-<?import javafx.scene.layout.BorderPane?>
-<?import javafx.scene.layout.GridPane?>
-<BorderPane
-    xmlns="http://javafx.com/javafx"
-    xmlns:fx="http://javafx.com/fxml"
-    minHeight="550.0" minWidth="850.0"
-    fx:controller="agh.ics.oop.presenter.SimulationPresenter"
->
+<?import javafx.geometry.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<BorderPane minHeight="600.0" minWidth="900.0" xmlns="http://javafx.com/javafx/17.0.2-ea" xmlns:fx="http://javafx.com/fxml/1" fx:controller="agh.ics.oop.presenter.SimulationPresenter">
     <top>
-        <Label
-            fx:id="mapMessage"
-            BorderPane.alignment="TOP_CENTER"
-        />
+      <HBox alignment="CENTER" BorderPane.alignment="TOP_CENTER">
+         <children>
+              <Label fx:id="mapMessage" />
+         </children>
+         <padding>
+            <Insets bottom="5.0" left="5.0" right="5.0" top="5.0" />
+         </padding>
+      </HBox>
     </top>
 
     <center>
-        <GridPane
-            fx:id="mapContent"
-            gridLinesVisible="true"
-            alignment="CENTER"
-        />
+        <GridPane fx:id="mapContent" alignment="CENTER" gridLinesVisible="true" />
     </center>
+   <bottom>
+      <HBox alignment="BOTTOM_CENTER" spacing="10.0" BorderPane.alignment="CENTER">
+         <children>
+            <Button fx:id="startButton" minWidth="60.0" mnemonicParsing="false" text="Start" />
+            <Button fx:id="pauseButton" disable="true" minWidth="60.0" mnemonicParsing="false" text="Pause" />
+            <Button fx:id="stopButton" disable="true" minWidth="60.0" mnemonicParsing="false" text="Stop" />
+         </children>
+         <opaqueInsets>
+            <Insets />
+         </opaqueInsets>
+         <padding>
+            <Insets bottom="5.0" left="5.0" right="5.0" top="5.0" />
+         </padding>
+      </HBox>
+   </bottom>
 </BorderPane>

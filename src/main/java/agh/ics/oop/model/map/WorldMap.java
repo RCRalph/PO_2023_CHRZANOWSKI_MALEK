@@ -91,8 +91,4 @@ public interface WorldMap extends PoseIndicator {
      * @return Boundary records of map bounds
      */
     Boundary getCurrentBounds();
-
-    void subscribe(MapChangeListener listener);
-
-    void unsubscribe(MapChangeListener listener);
 }

@@ -1,8 +1,8 @@
 package agh.ics.oop;
 
 import agh.ics.oop.presenter.SimulationPresenter;
+import agh.ics.oop.simulation.Simulation;
 import javafx.application.Application;
-import javafx.application.Platform;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Scene;
 import javafx.scene.image.Image;
@@ -10,18 +10,15 @@ import javafx.scene.layout.BorderPane;
 import javafx.stage.Stage;
 
 import java.io.IOException;
-import java.util.concurrent.TimeUnit;
 
 public class SimulationWindow extends Application {
     private final String title;
 
     private final Simulation simulation;
 
-    private SimulationPresenter presenter;
-
-    public SimulationWindow(String title, Simulation parameters) {
+    public SimulationWindow(String title, Simulation simulation) {
         this.title = title;
-        this.simulation = parameters;
+        this.simulation = simulation;
     }
 
     @Override
@@ -31,14 +28,10 @@ public class SimulationWindow extends Application {
         BorderPane viewRoot = loader.load();
         this.configureStage(stage, viewRoot);
 
-        this.presenter = loader.getController();
-        this.presenter.setSimulation(this.simulation);
+        SimulationPresenter presenter = loader.getController();
+        presenter.setSimulation(this.simulation);
 
         stage.show();
-
-        try {
-            presenter.start();
-        } catch (InterruptedException ignored) {}
     }
 
     private void configureStage(Stage primaryStage, BorderPane viewRoot) {

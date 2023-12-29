@@ -1,5 +1,6 @@
-package agh.ics.oop;
+package agh.ics.oop.simulation;
 
+import agh.ics.oop.InvalidSimulationConfigurationException;
 import agh.ics.oop.model.Vector2D;
 import agh.ics.oop.model.element.Animal;
 import agh.ics.oop.model.element.DarwinistAnimalComparator;
@@ -41,6 +42,8 @@ public class Simulation implements Runnable {
 
     private final SimulationParameters parameters;
 
+    private final List<SimulationChangeListener> listeners = new ArrayList<>();
+
     private final ChildGenesIndicator childGenesIndicator;
 
     private final BehaviourIndicator behaviourIndicator;
@@ -53,7 +56,9 @@ public class Simulation implements Runnable {
 
     private final Boundary boundary;
 
-    private int currentDay = 0;
+    volatile SimulationStatus executionStatus;
+
+    private int currentDay;
 
     private PlantGrowthIndicator getPlantGrowthIndicator(
         SimulationParameters parameters
@@ -223,36 +228,86 @@ public class Simulation implements Runnable {
         }
     }
 
-    public void subscribe(MapChangeListener listener) {
-        this.worldMap.subscribe(listener);
+    public void initialize() {
+        this.generateAnimals();
+        this.worldMap.growPlants(this.parameters.startPlantCount());
+        this.executionStatus = SimulationStatus.INITIALIZED;
+        this.currentDay = 1;
+        this.simulationChanged("Initialized simulation");
     }
 
-    public void unsubscribe(MapChangeListener listener) {
-        this.worldMap.unsubscribe(listener);
+
+    public void subscribe(SimulationChangeListener listener) {
+        this.listeners.add(listener);
+    }
+
+    public void unsubscribe(SimulationChangeListener listener) {
+        this.listeners.remove(listener);
     }
 
     public int getCurrentDay() {
         return this.currentDay;
     }
 
+    private void simulationChanged(String message) {
+        for (SimulationChangeListener listener : this.listeners) {
+            listener.simulationMapChanged(this.worldMap, message);
+        }
+    }
+
+    private void simulationChanged(String message, int day) {
+        for (SimulationChangeListener listener : this.listeners) {
+            listener.simulationMapChanged(this.worldMap, String.format("Day %d: %s", day, message));
+        }
+    }
+
     @Override
     public void run() {
-        this.generateAnimals();
-        this.worldMap.growPlants(this.parameters.startPlantCount());
+        int actionID = 0;
+        try {
+            while (this.worldMap.aliveAnimalCount() > 0 && this.executionStatus != SimulationStatus.STOPPED) {
+                switch (actionID++) {
+                    case 0 -> {
+                        this.worldMap.removeDeadAnimals(this.currentDay);
+                        this.simulationChanged("Removed dead animals", this.currentDay);
+                    }
+                    case 1 -> {
+                        this.worldMap.moveAnimals();
+                        this.simulationChanged("Moved animals", this.currentDay);
+                    }
+                    case 2 -> {
+                        this.worldMap.consumePlants();
+                        this.simulationChanged("Animals consumed plants", this.currentDay);
+                    }
+                    case 3 -> {
+                        this.reproduceAnimals();
+                        this.simulationChanged("Reproduced animals", this.currentDay);
+                    }
+                    case 4 -> {
+                        this.worldMap.growPlants(this.parameters.dailyPlantGrowth());
+                        this.simulationChanged("Grew new plants", this.currentDay);
+                    }
+                    default -> {
+                        actionID = 0;
+                        this.simulationChanged("Progressing to the next day...");
+                        this.currentDay++;
+                    }
+                }
 
-        while (!Thread.currentThread().isInterrupted() && this.worldMap.aliveAnimalCount() > 0) {
-            this.currentDay++;
-            System.out.println(Thread.currentThread().isInterrupted());
+                TimeUnit.MILLISECONDS.sleep(250);
+                while (this.executionStatus == SimulationStatus.PAUSED) {
+                    this.simulationChanged("Simulation paused");
+                    TimeUnit.MILLISECONDS.sleep(10);
+                }
+            }
 
-            this.worldMap.removeDeadAnimals(this.currentDay);
-            this.worldMap.moveAnimals();
-            this.worldMap.consumePlants();
-            this.reproduceAnimals();
-            this.worldMap.growPlants(this.parameters.dailyPlantGrowth());
-
-            try {
-                TimeUnit.SECONDS.sleep(1);
-            } catch (InterruptedException ignored) {}
+            this.simulationChanged(
+                this.worldMap.aliveAnimalCount() == 0 ?
+                    "All animals are dead" :
+                    "Simulation stopped"
+            );
+        } catch (InterruptedException exception) {
+            Thread.currentThread().interrupt();
         }
     }
 }

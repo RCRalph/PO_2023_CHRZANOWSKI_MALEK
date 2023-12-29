@@ -14,8 +14,6 @@ abstract class AbstractWorldMap implements WorldMap {
 
     protected final Map<Vector2D, Plant> plants = new HashMap<>();
 
-    protected final List<MapChangeListener> listeners = new ArrayList<>();
-
     protected final Boundary boundary;
 
     protected final PlantGrowthIndicator plantGrowthIndicator;
@@ -28,7 +26,6 @@ abstract class AbstractWorldMap implements WorldMap {
     @Override
     public void placeAnimal(Animal animal) {
         this.animals.addAnimal(animal);
-        this.mapChanged(String.format("Placed animal at %s", animal.getPosition()));
     }
 
     protected Set<Vector2D> invalidPlantPositions() {
@@ -39,7 +36,6 @@ abstract class AbstractWorldMap implements WorldMap {
     public void growPlants(int plantCount) {
         for (Plant plant : this.plantGrowthIndicator.getPlants(this.invalidPlantPositions(), plantCount)) {
             this.plants.put(plant.getPosition(), plant);
-            this.mapChanged(String.format("Placed plant at %s", plant.getPosition()));
         }
     }
 
@@ -56,23 +52,9 @@ abstract class AbstractWorldMap implements WorldMap {
     @Override
     public void moveAnimals() {
         for (Animal animal : this.animals.values()) {
-            Pose startPose = animal.getPose();
-
             this.animals.removeAnimal(animal);
             animal.move(this);
             this.animals.addAnimal(animal);
-
-            if (!startPose.orientation().equals(animal.getOrientation())) {
-                this.mapChanged(String.format(
-                    "Changed orientation of animal at %s from %s to %s",
-                    startPose.position(), startPose.orientation(), animal.getOrientation()
-                ));
-            } else {
-                this.mapChanged(String.format(
-                    "Moved animal from %s to %s",
-                    startPose.position(), animal.getPosition()
-                ));
-            }
         }
     }
 
@@ -108,7 +90,12 @@ abstract class AbstractWorldMap implements WorldMap {
         }
 
         if (this.animals.isOccupied(position)) {
-            result.addAll(this.animals.animalsAt(position));
+            result.addAll(
+                this.animals.animalsAt(position)
+                    .stream()
+                    .sorted(new DarwinistAnimalComparator().reversed())
+                    .toList()
+            );
         }
 
         return result;
@@ -135,21 +122,5 @@ abstract class AbstractWorldMap implements WorldMap {
     @Override
     public Boundary getCurrentBounds() {
         return this.boundary;
-    }
-
-    private void mapChanged(String message) {
-        for (MapChangeListener listener : listeners) {
-            listener.mapChanged(this, message);
-        }
-    }
-
-    @Override
-    public void subscribe(MapChangeListener listener) {
-        this.listeners.add(listener);
-    }
-
-    @Override
-    public void unsubscribe(MapChangeListener listener) {
-        this.listeners.remove(listener);
     }
 }
