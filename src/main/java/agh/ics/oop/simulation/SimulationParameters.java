@@ -1,4 +1,4 @@
-package agh.ics.oop;
+package agh.ics.oop.simulation;
 
 import com.google.gson.JsonObject;
 
@@ -54,9 +54,7 @@ public record SimulationParameters(
                 "Tunnel entrances count should not exceed total position count of the given map"
             );
         } else if (!Simulation.WORLD_MAPS.containsKey(this.worldMapVariant)) {
-            return Optional.of(
-                "World map variant should point to a valid class"
-            );
+            return Optional.of("World map variant should point to a valid class");
         }
 
         return Optional.empty();
@@ -68,9 +66,7 @@ public record SimulationParameters(
         } else if (this.dailyPlantGrowth() < 0) {
             return Optional.of("Daily plant growth should be greater than or equal to 0");
         } else if (!Simulation.PLANT_GROWTH_INDICATORS.containsKey(this.plantGrowthIndicatorVariant)) {
-            return Optional.of(
-                "Plant growth indicator variant should point to a valid class"
-            );
+            return Optional.of("Plant growth indicator variant should point to a valid class");
         }
 
         return Optional.empty();
@@ -84,9 +80,7 @@ public record SimulationParameters(
         } else if (this.maximumMutationCount() > this.geneCount()) {
             return Optional.of("Maximal mutation count should be less than or equal to gene count");
         } else if (!Simulation.CHILD_GENES_INDICATORS.containsKey(this.childGenesIndicatorVariant())) {
-            return Optional.of(
-                "Mutation variant should point to a valid class"
-            );
+            return Optional.of("Mutation variant should point to a valid class");
         }
 
         return Optional.empty();
@@ -99,12 +93,12 @@ public record SimulationParameters(
             return Optional.of("Animal's start energy should be greater than 0");
         } else if (this.animalMoveEnergy() < 0) {
             return Optional.of("Animal's move energy should be greater or equal to 0");
-        } else if (0 > this.healthyAnimalEnergy() || this.healthyAnimalEnergy() > this.reproductionEnergy()) {
-            return Optional.of("Healthy animal energy should not exceed reproduction energy level");
+        } else if (this.healthyAnimalEnergy() <= 0) {
+            return Optional.of("Healthy animal energy should be greater than 0");
+        } else if (this.healthyAnimalEnergy() < this.reproductionEnergy()) {
+            return Optional.of("Reproduction energy should not exceed healthy energy level");
         } else if (!Simulation.BEHAVIOUR_INDICATORS.containsKey(this.animalBehaviourIndicatorVariant)) {
-            return Optional.of(
-                "Animal behaviour indicator variant should point to a valid class"
-            );
+            return Optional.of("Animal behaviour indicator variant should point to a valid class");
         }
 
         return Optional.empty();

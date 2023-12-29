@@ -10,13 +10,8 @@ import java.util.*;
 public class UndergroundTunnelsWorldMap extends AbstractWorldMap {
     private final Map<Vector2D, Vector2D> tunnels = new HashMap<>();
 
-    public UndergroundTunnelsWorldMap(
-        int mapWidth,
-        int mapHeight,
-        int tunnelCount,
-        PlantGrowthIndicator plantGrowthIndicator
-    ) {
-        super(mapWidth, mapHeight, plantGrowthIndicator);
+    public UndergroundTunnelsWorldMap(Boundary boundary, int tunnelCount, PlantGrowthIndicator plantGrowthIndicator) {
+        super(boundary, plantGrowthIndicator);
         this.generateTunnels(tunnelCount);
     }
 

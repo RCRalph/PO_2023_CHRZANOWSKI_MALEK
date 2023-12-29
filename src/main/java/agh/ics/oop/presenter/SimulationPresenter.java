@@ -1,32 +1,31 @@
 package agh.ics.oop.presenter;
 
-import agh.ics.oop.InvalidSimulationConfigurationException;
-import agh.ics.oop.Simulation;
-import agh.ics.oop.SimulationEngine;
-import agh.ics.oop.SimulationParameters;
+import agh.ics.oop.simulation.Simulation;
 import agh.ics.oop.model.Vector2D;
+import agh.ics.oop.model.element.WorldElement;
 import agh.ics.oop.model.map.Boundary;
-import agh.ics.oop.model.map.MapChangeListener;
+import agh.ics.oop.simulation.SimulationChangeListener;
 import agh.ics.oop.model.map.WorldMap;
+import agh.ics.oop.simulation.SimulationEngine;
 import javafx.application.Platform;
-import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
+import javafx.fxml.Initializable;
 import javafx.geometry.HPos;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
-import javafx.scene.control.TextField;
+import javafx.scene.image.ImageView;
 import javafx.scene.layout.ColumnConstraints;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.RowConstraints;
 
-import java.util.List;
+import java.net.URL;
+import java.util.ResourceBundle;
 
-public class SimulationPresenter implements MapChangeListener {
+public class SimulationPresenter implements SimulationChangeListener, Initializable {
+    public static final int CELL_SIZE = 75;
+
     @FXML
     private Label mapMessage;
-
-    @FXML
-    private TextField moveInput;
 
     @FXML
     private GridPane mapContent;
@@ -34,15 +33,34 @@ public class SimulationPresenter implements MapChangeListener {
     @FXML
     private Button startButton;
 
-    private WorldMap map;
+    @FXML
+    private Button pauseButton;
 
-    public void setWorldMap(WorldMap map) {
-        if (this.map != null) {
-            this.map.unsubscribe(this);
+    @FXML
+    private Button stopButton;
+
+    private Simulation simulation;
+
+    private SimulationEngine simulationEngine;
+
+    public void setSimulation(Simulation simulation) {
+        if (this.simulation != null) {
+            this.simulation.unsubscribe(this);
+
+            try {
+                this.simulationEngine.stop();
+            } catch (InterruptedException ignored) {}
         }
 
-        this.map = map;
-        this.map.subscribe(this);
+        this.simulation = simulation;
+        this.simulation.subscribe(this);
+        this.simulation.initialize();
+        this.simulationEngine = new SimulationEngine(this.simulation);
+    }
+
+    private void addToGridPane(ImageView imageView, int column, int row) {
+        GridPane.setHalignment(imageView, HPos.CENTER);
+        this.mapContent.add(imageView, column, row);
     }
 
     private void addToGridPane(String text, int column, int row) {
@@ -53,88 +71,83 @@ public class SimulationPresenter implements MapChangeListener {
 
     private void drawCoordinates(Boundary boundary) {
         this.addToGridPane("y\\x", 0, 0);
-        this.mapContent.getColumnConstraints().add(new ColumnConstraints(25));
-        this.mapContent.getRowConstraints().add(new RowConstraints(25));
+        this.mapContent.getColumnConstraints().add(new ColumnConstraints(CELL_SIZE));
+        this.mapContent.getRowConstraints().add(new RowConstraints(CELL_SIZE));
 
         int horizontalCoordinateCount = boundary.upperRightCorner().x() - boundary.lowerLeftCorner().x() + 1,
             verticalCoordinateCount = boundary.upperRightCorner().y() - boundary.lowerLeftCorner().y() + 1;
 
         for (int i = 0; i < horizontalCoordinateCount; i++) {
-            this.mapContent.getColumnConstraints().add(new ColumnConstraints(25));
+            this.mapContent.getColumnConstraints().add(new ColumnConstraints(CELL_SIZE));
             this.addToGridPane(Integer.toString(i + boundary.lowerLeftCorner().x()), i + 1, 0);
         }
 
         for (int i = 0; i < verticalCoordinateCount; i++) {
-            this.mapContent.getRowConstraints().add(new RowConstraints(25));
+            this.mapContent.getRowConstraints().add(new RowConstraints(CELL_SIZE));
             this.addToGridPane(Integer.toString(boundary.upperRightCorner().y() - i), 0, i + 1);
         }
     }
 
-    private void drawMap(String message) {
-        this.mapMessage.setText(message);
-
+    private void drawMap(WorldMap map) {
         // Clear all WorldElements from map
-        this.mapContent.getChildren().retainAll(this.mapContent.getChildren().get(0)); // hack to retain visible grid lines
+        this.mapContent.getChildren().retainAll(this.mapContent.getChildren().get(0));
         this.mapContent.getColumnConstraints().clear();
         this.mapContent.getRowConstraints().clear();
 
-        Boundary boundary = this.map.getCurrentBounds();
+        Boundary boundary = map.getCurrentBounds();
         this.drawCoordinates(boundary);
 
         for (int r = boundary.upperRightCorner().y(); r >= boundary.lowerLeftCorner().y(); r--) {
             for (int c = boundary.lowerLeftCorner().x(); c <= boundary.upperRightCorner().x(); c++) {
                 Vector2D position = new Vector2D(c, r);
 
-                if (this.map.isOccupied(position)) {
-                    this.addToGridPane(
-                        "x",//this.map.objectAt(position).toString(),
-                        c + 1 - boundary.lowerLeftCorner().x(),
-                        boundary.upperRightCorner().y() - r + 1
-                    );
+                if (map.isOccupied(position)) {
+                    for (WorldElement element : map.objectsAt(position)) {
+                        this.addToGridPane(
+                            element.getImageView(),
+                            c + 1 - boundary.lowerLeftCorner().x(),
+                            boundary.upperRightCorner().y() - r + 1
+                        );
+                    }
                 }
             }
         }
     }
 
     @Override
-    public void mapChanged(WorldMap worldMap, String message) {
-        Platform.runLater(() -> this.drawMap(message));
+    public void simulationMapChanged(WorldMap map, String message) {
+        Platform.runLater(() -> {
+            this.mapMessage.setText(message);
+            this.drawMap(map);
+        });
     }
 
-    @FXML
-    private void onSimulationStartClicked(ActionEvent ignored) {
-        SimulationParameters simulationParameters = new SimulationParameters(
-            "Non-editable config",
-            0,
-            0,
-            "Planet",
-            0,
-            0,
-            0,
-            0,
-            "Slight correction",
-            0,
-            0,
-            0,
-            "Forested Equator",
-            0,
-            0,
-            0,
-            0,
-            0,
-            "Full predestination"
-        );
-
-        try {
-            Simulation simulation = new Simulation(simulationParameters);
-
-            SimulationEngine simulationEngine = new SimulationEngine(List.of(simulation));
-            simulationEngine.runAsync();
-
-            this.moveInput.setDisable(true);
+    @Override
+    public void initialize(URL location, ResourceBundle resources) {
+        this.startButton.setOnAction(event -> {
             this.startButton.setDisable(true);
-        } catch (InvalidSimulationConfigurationException exception) {
-            this.drawMap(exception.getMessage());
-        }
+            this.pauseButton.setDisable(false);
+            this.stopButton.setDisable(false);
+
+            this.simulationEngine.start();
+        });
+
+        this.pauseButton.setOnAction(event -> {
+            this.startButton.setDisable(false);
+            this.pauseButton.setDisable(true);
+            this.stopButton.setDisable(false);
+
+            this.simulationEngine.pause();
+        });
+
+        this.stopButton.setOnAction(event -> {
+            this.startButton.setDisable(true);
+            this.pauseButton.setDisable(true);
+            this.stopButton.setDisable(true);
+
+            try {
+                this.simulationEngine.stop();
+            } catch (InterruptedException ignored) {}
+        });
     }
 }

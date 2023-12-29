@@ -29,7 +29,7 @@ public record Boundary(
         List<Vector2D> result = new ArrayList<>(this.totalPositionCount());
 
         for (int x = this.lowerLeftCorner().x(); x <= this.upperRightCorner().x(); x++) {
-            for (int y = this.lowerLeftCorner().y(); y < this.upperRightCorner().y(); y++) {
+            for (int y = this.lowerLeftCorner().y(); y <= this.upperRightCorner().y(); y++) {
                 result.add(new Vector2D(x, y));
             }
         }

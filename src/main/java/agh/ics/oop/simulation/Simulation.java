@@ -1,5 +1,6 @@
-package agh.ics.oop;
+package agh.ics.oop.simulation;
 
+import agh.ics.oop.InvalidSimulationConfigurationException;
 import agh.ics.oop.model.Vector2D;
 import agh.ics.oop.model.element.Animal;
 import agh.ics.oop.model.element.DarwinistAnimalComparator;
@@ -12,14 +13,18 @@ import agh.ics.oop.model.element.gene.*;
 import agh.ics.oop.model.map.*;
 
 import java.lang.reflect.InvocationTargetException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.TimeUnit;
 
 public class Simulation implements Runnable {
     public static final Map<String, Class<? extends PlantGrowthIndicator>> PLANT_GROWTH_INDICATORS = Map.of(
-
+        "Forested equator", ForestedEquatorPlantGrowthIndicator.class
     );
 
     public static final Map<String, Class<? extends WorldMap>> WORLD_MAPS = Map.of(
+        "Globe", GlobeWorldMap.class,
         "Underground tunnels", UndergroundTunnelsWorldMap.class
     );
 
@@ -37,6 +42,8 @@ public class Simulation implements Runnable {
 
     private final SimulationParameters parameters;
 
+    private final List<SimulationChangeListener> listeners = new ArrayList<>();
+
     private final ChildGenesIndicator childGenesIndicator;
 
     private final BehaviourIndicator behaviourIndicator;
@@ -47,7 +54,11 @@ public class Simulation implements Runnable {
 
     private final EnergyParameters energyParameters;
 
-    private int currentDay = 0;
+    private final Boundary boundary;
+
+    volatile SimulationStatus executionStatus;
+
+    private int currentDay;
 
     private PlantGrowthIndicator getPlantGrowthIndicator(
         SimulationParameters parameters
@@ -55,12 +66,8 @@ public class Simulation implements Runnable {
         try {
             return PLANT_GROWTH_INDICATORS
                 .get(parameters.plantGrowthIndicatorVariant())
-                .getDeclaredConstructor(Integer.class, Integer.class, Integer.class)
-                .newInstance(
-                    parameters.geneCount(),
-                    parameters.minimumMutationCount(),
-                    parameters.maximumMutationCount()
-                );
+                .getDeclaredConstructor(Boundary.class)
+                .newInstance(this.boundary);
         } catch (
             NoSuchMethodException |
             InstantiationException |
@@ -68,7 +75,7 @@ public class Simulation implements Runnable {
             InvocationTargetException exception
         ) {
             throw new InvalidSimulationConfigurationException(
-                "Invalid plant growth indicator implementation: " + exception.getMessage()
+                "Invalid plant growth indicator implementation: " + exception
             );
         }
     }
@@ -80,14 +87,14 @@ public class Simulation implements Runnable {
         Class<? extends WorldMap> worldMap = WORLD_MAPS.get(parameters.worldMapVariant());
 
         try {
-            if (worldMap == UndergroundTunnelsWorldMap.class) {
-                return worldMap.getDeclaredConstructor(
-                    Integer.class, Integer.class,
-                    Integer.class, PlantGrowthIndicator.class
-                ).newInstance(
-                    parameters.mapWidth(), parameters.mapHeight(),
-                    parameters.tunnelCount(), plantGrowthIndicator
-                );
+            if (worldMap == GlobeWorldMap.class) {
+                return worldMap
+                    .getDeclaredConstructor(Boundary.class, PlantGrowthIndicator.class)
+                    .newInstance(this.boundary, plantGrowthIndicator);
+            } else if (worldMap == UndergroundTunnelsWorldMap.class) {
+                return worldMap
+                    .getDeclaredConstructor(Boundary.class, int.class, PlantGrowthIndicator.class)
+                    .newInstance(this.boundary, parameters.tunnelCount(), plantGrowthIndicator);
             } else {
                 throw new InvalidSimulationConfigurationException("World map variant should point to a valid class");
             }
@@ -98,7 +105,7 @@ public class Simulation implements Runnable {
             InvocationTargetException exception
         ) {
             throw new InvalidSimulationConfigurationException(
-                "Invalid world map implementation: " + exception.getMessage()
+                "Invalid world map implementation: " + exception
             );
         }
     }
@@ -109,7 +116,7 @@ public class Simulation implements Runnable {
         try {
             return BEHAVIOUR_INDICATORS
                 .get(parameters.animalBehaviourIndicatorVariant())
-                .getDeclaredConstructor(Integer.class)
+                .getDeclaredConstructor(int.class)
                 .newInstance(parameters.geneCount());
         } catch (
             NoSuchMethodException |
@@ -118,7 +125,7 @@ public class Simulation implements Runnable {
             InvocationTargetException exception
         ) {
             throw new InvalidSimulationConfigurationException(
-                "Invalid behaviour indicator implementation: " + exception.getMessage()
+                "Invalid behaviour indicator implementation: " + exception
             );
         }
     }
@@ -129,7 +136,7 @@ public class Simulation implements Runnable {
         try {
             return CHILD_GENES_INDICATORS
                 .get(parameters.childGenesIndicatorVariant())
-                .getDeclaredConstructor(Integer.class, Integer.class, Integer.class)
+                .getDeclaredConstructor(int.class, int.class, int.class)
                 .newInstance(
                     parameters.geneCount(),
                     parameters.minimumMutationCount(),
@@ -142,14 +149,12 @@ public class Simulation implements Runnable {
             InvocationTargetException exception
         ) {
             throw new InvalidSimulationConfigurationException(
-                "Invalid child genes indicator implementation: " + exception.getMessage()
+                "Invalid child genes indicator implementation: " + exception
             );
         }
     }
 
     public Simulation(SimulationParameters parameters) throws InvalidSimulationConfigurationException {
-        // Java doesn't allow throwing checked exceptions outside lambda expressions,
-        // so this check unfortunately has to be done this way
         if (parameters.getValidationMessage().isPresent()) {
             throw new InvalidSimulationConfigurationException(parameters.getValidationMessage().get());
         }
@@ -161,6 +166,11 @@ public class Simulation implements Runnable {
             this.parameters.animalMoveEnergy(),
             this.parameters.plantEnergy(),
             this.parameters.reproductionEnergy()
+        );
+
+        this.boundary = new Boundary(
+            new Vector2D(0, 0),
+            new Vector2D(parameters.mapWidth() - 1, parameters.mapHeight() - 1)
         );
 
         this.worldMap = this.getWorldMap(parameters, this.getPlantGrowthIndicator(parameters));
@@ -218,19 +228,86 @@ public class Simulation implements Runnable {
         }
     }
 
-    @Override
-    public void run() {
+    public void initialize() {
         this.generateAnimals();
         this.worldMap.growPlants(this.parameters.startPlantCount());
+        this.executionStatus = SimulationStatus.INITIALIZED;
+        this.currentDay = 1;
+        this.simulationChanged("Initialized simulation");
+    }
 
-        while (this.worldMap.aliveAnimalCount() > 0) {
-            this.currentDay++;
 
-            this.worldMap.removeDeadAnimals(this.currentDay);
-            this.worldMap.moveAnimals();
-            this.worldMap.consumePlants();
-            this.reproduceAnimals();
-            this.worldMap.growPlants(this.parameters.dailyPlantGrowth());
+    public void subscribe(SimulationChangeListener listener) {
+        this.listeners.add(listener);
+    }
+
+    public void unsubscribe(SimulationChangeListener listener) {
+        this.listeners.remove(listener);
+    }
+
+    public int getCurrentDay() {
+        return this.currentDay;
+    }
+
+    private void simulationChanged(String message) {
+        for (SimulationChangeListener listener : this.listeners) {
+            listener.simulationMapChanged(this.worldMap, message);
+        }
+    }
+
+    private void simulationChanged(String message, int day) {
+        for (SimulationChangeListener listener : this.listeners) {
+            listener.simulationMapChanged(this.worldMap, String.format("Day %d: %s", day, message));
+        }
+    }
+
+    @Override
+    public void run() {
+        int actionID = 0;
+        try {
+            while (this.worldMap.aliveAnimalCount() > 0 && this.executionStatus != SimulationStatus.STOPPED) {
+                switch (actionID++) {
+                    case 0 -> {
+                        this.worldMap.removeDeadAnimals(this.currentDay);
+                        this.simulationChanged("Removed dead animals", this.currentDay);
+                    }
+                    case 1 -> {
+                        this.worldMap.moveAnimals();
+                        this.simulationChanged("Moved animals", this.currentDay);
+                    }
+                    case 2 -> {
+                        this.worldMap.consumePlants();
+                        this.simulationChanged("Animals consumed plants", this.currentDay);
+                    }
+                    case 3 -> {
+                        this.reproduceAnimals();
+                        this.simulationChanged("Reproduced animals", this.currentDay);
+                    }
+                    case 4 -> {
+                        this.worldMap.growPlants(this.parameters.dailyPlantGrowth());
+                        this.simulationChanged("Grew new plants", this.currentDay);
+                    }
+                    default -> {
+                        actionID = 0;
+                        this.simulationChanged("Progressing to the next day...");
+                        this.currentDay++;
+                    }
+                }
+
+                TimeUnit.MILLISECONDS.sleep(250);
+                while (this.executionStatus == SimulationStatus.PAUSED) {
+                    this.simulationChanged("Simulation paused");
+                    TimeUnit.MILLISECONDS.sleep(10);
+                }
+            }
+
+            this.simulationChanged(
+                this.worldMap.aliveAnimalCount() == 0 ?
+                    "All animals are dead" :
+                    "Simulation stopped"
+            );
+        } catch (InterruptedException exception) {
+            Thread.currentThread().interrupt();
         }
     }
 }

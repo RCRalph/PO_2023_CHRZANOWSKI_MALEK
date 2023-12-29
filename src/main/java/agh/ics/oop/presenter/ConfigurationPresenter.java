@@ -1,7 +1,9 @@
 package agh.ics.oop.presenter;
 
-import agh.ics.oop.Simulation;
-import agh.ics.oop.SimulationParameters;
+import agh.ics.oop.InvalidSimulationConfigurationException;
+import agh.ics.oop.simulation.Simulation;
+import agh.ics.oop.simulation.SimulationParameters;
+import agh.ics.oop.SimulationWindow;
 import agh.ics.oop.model.map.UndergroundTunnelsWorldMap;
 import com.google.gson.*;
 import javafx.beans.property.SimpleBooleanProperty;
@@ -11,6 +13,7 @@ import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.control.*;
 import javafx.scene.paint.Paint;
+import javafx.stage.Stage;
 
 import java.io.FileReader;
 import java.io.FileWriter;
@@ -128,7 +131,7 @@ public class ConfigurationPresenter implements Initializable {
 
             this.showMessage("Loaded configurations!");
         } catch (IOException exception) {
-            this.showErrorMessage(exception.getMessage());
+            this.showErrorMessage(exception.toString());
         }
     }
 
@@ -154,7 +157,7 @@ public class ConfigurationPresenter implements Initializable {
             gson.toJson(jsonArray, fileWriter);
             this.showMessage("Configuration saved!");
         } catch (IOException exception) {
-            this.showErrorMessage(exception.getMessage());
+            this.showErrorMessage(exception.toString());
         }
     }
 
@@ -280,6 +283,7 @@ public class ConfigurationPresenter implements Initializable {
         this.plantEnergy.getValueFactory().setValue(parameters.plantEnergy());
 
         this.initialAnimalCount.getValueFactory().setValue(parameters.startAnimalCount());
+        this.initialAnimalEnergy.getValueFactory().setValue(parameters.animalStartEnergy());
         this.animalMovementEnergy.getValueFactory().setValue(parameters.animalMoveEnergy());
         this.healthyAnimalEnergy.getValueFactory().setValue(parameters.healthyAnimalEnergy());
         this.animalReproductionEnergy.getValueFactory().setValue(parameters.reproductionEnergy());
@@ -322,8 +326,22 @@ public class ConfigurationPresenter implements Initializable {
         Optional<String> validationMessage = parameters.getValidationMessage();
         if (validationMessage.isPresent()) {
             this.showErrorMessage(validationMessage.get());
-        } else {
+            return;
+        }
+
+        try {
+            Simulation simulation = new Simulation(parameters);
+
+            new SimulationWindow(
+                String.format("%s (%s)", parameters.configurationName(), UUID.randomUUID()),
+                simulation
+            ).start(new Stage());
+
             this.showMessage("Running simulation...");
+        } catch (InvalidSimulationConfigurationException exception) {
+            this.showErrorMessage(exception.getMessage());
+        } catch (IOException exception) {
+            this.showErrorMessage("An error has occurred: " + exception);
         }
     }
 
