@@ -1,6 +1,5 @@
 package agh.ics.oop.model.map;
 
-import agh.ics.oop.model.Pose;
 import agh.ics.oop.model.Vector2D;
 import agh.ics.oop.model.element.Animal;
 import agh.ics.oop.model.element.DarwinistAnimalComparator;

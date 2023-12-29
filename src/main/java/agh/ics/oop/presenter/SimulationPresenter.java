@@ -1,11 +1,11 @@
 package agh.ics.oop.presenter;
 
-import agh.ics.oop.simulation.Simulation;
 import agh.ics.oop.model.Vector2D;
 import agh.ics.oop.model.element.WorldElement;
 import agh.ics.oop.model.map.Boundary;
-import agh.ics.oop.simulation.SimulationChangeListener;
 import agh.ics.oop.model.map.WorldMap;
+import agh.ics.oop.simulation.Simulation;
+import agh.ics.oop.simulation.SimulationChangeListener;
 import agh.ics.oop.simulation.SimulationEngine;
 import javafx.application.Platform;
 import javafx.fxml.FXML;
