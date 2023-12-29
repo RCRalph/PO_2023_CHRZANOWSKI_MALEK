@@ -1,6 +1,5 @@
 package agh.ics.oop.simulation;
 
-import agh.ics.oop.InvalidSimulationConfigurationException;
 import agh.ics.oop.model.Vector2D;
 import agh.ics.oop.model.element.Animal;
 import agh.ics.oop.model.element.DarwinistAnimalComparator;
