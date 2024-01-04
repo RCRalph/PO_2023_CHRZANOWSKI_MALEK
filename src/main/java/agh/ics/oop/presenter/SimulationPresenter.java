@@ -8,7 +8,6 @@ import agh.ics.oop.simulation.Simulation;
 import agh.ics.oop.simulation.SimulationChangeListener;
 import javafx.application.Platform;
 import javafx.fxml.FXML;
-import javafx.fxml.Initializable;
 import javafx.geometry.HPos;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
@@ -17,10 +16,7 @@ import javafx.scene.layout.ColumnConstraints;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.RowConstraints;
 
-import java.net.URL;
-import java.util.ResourceBundle;
-
-public class SimulationPresenter implements SimulationChangeListener, Initializable {
+public class SimulationPresenter implements SimulationChangeListener {
     public static final int CELL_SIZE = 75;
 
     @FXML
@@ -118,34 +114,34 @@ public class SimulationPresenter implements SimulationChangeListener, Initializa
         });
     }
 
-    @Override
-    public void initialize(URL location, ResourceBundle resources) {
-        this.startButton.setOnAction(event -> {
-            this.startButton.setDisable(true);
-            this.pauseButton.setDisable(false);
-            this.stopButton.setDisable(false);
+    @FXML
+    private void onStartButtonAction() {
+        this.startButton.setDisable(true);
+        this.pauseButton.setDisable(false);
+        this.stopButton.setDisable(false);
 
-            this.simulation.start();
-        });
+        this.simulation.start();
+    }
 
-        this.pauseButton.setOnAction(event -> {
-            this.startButton.setDisable(false);
-            this.pauseButton.setDisable(true);
-            this.stopButton.setDisable(false);
+    @FXML
+    private void onPauseButtonAction() {
+        this.startButton.setDisable(false);
+        this.pauseButton.setDisable(true);
+        this.stopButton.setDisable(false);
 
-            try {
-                this.simulation.pause();
-            } catch (InterruptedException ignored) {}
-        });
+        try {
+            this.simulation.pause();
+        } catch (InterruptedException ignored) {}
+    }
 
-        this.stopButton.setOnAction(event -> {
-            this.startButton.setDisable(true);
-            this.pauseButton.setDisable(true);
-            this.stopButton.setDisable(true);
+    @FXML
+    private void onStopButtonAction() {
+        this.startButton.setDisable(true);
+        this.pauseButton.setDisable(true);
+        this.stopButton.setDisable(true);
 
-            try {
-                this.simulation.stop();
-            } catch (InterruptedException ignored) {}
-        });
+        try {
+            this.simulation.stop();
+        } catch (InterruptedException ignored) {}
     }
 }
