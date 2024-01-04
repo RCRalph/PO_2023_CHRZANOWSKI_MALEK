@@ -6,7 +6,6 @@ import agh.ics.oop.model.map.Boundary;
 import agh.ics.oop.model.map.WorldMap;
 import agh.ics.oop.simulation.Simulation;
 import agh.ics.oop.simulation.SimulationChangeListener;
-import agh.ics.oop.simulation.SimulationEngine;
 import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
@@ -41,21 +40,18 @@ public class SimulationPresenter implements SimulationChangeListener, Initializa
 
     private Simulation simulation;
 
-    private SimulationEngine simulationEngine;
-
     public void setSimulation(Simulation simulation) {
         if (this.simulation != null) {
             this.simulation.unsubscribe(this);
 
             try {
-                this.simulationEngine.stop();
+                this.simulation.stop();
             } catch (InterruptedException ignored) {}
         }
 
         this.simulation = simulation;
         this.simulation.subscribe(this);
         this.simulation.initialize();
-        this.simulationEngine = new SimulationEngine(this.simulation);
     }
 
     private void addToGridPane(ImageView imageView, int column, int row) {
@@ -129,7 +125,7 @@ public class SimulationPresenter implements SimulationChangeListener, Initializa
             this.pauseButton.setDisable(false);
             this.stopButton.setDisable(false);
 
-            this.simulationEngine.start();
+            this.simulation.start();
         });
 
         this.pauseButton.setOnAction(event -> {
@@ -137,7 +133,9 @@ public class SimulationPresenter implements SimulationChangeListener, Initializa
             this.pauseButton.setDisable(true);
             this.stopButton.setDisable(false);
 
-            this.simulationEngine.pause();
+            try {
+                this.simulation.pause();
+            } catch (InterruptedException ignored) {}
         });
 
         this.stopButton.setOnAction(event -> {
@@ -146,7 +144,7 @@ public class SimulationPresenter implements SimulationChangeListener, Initializa
             this.stopButton.setDisable(true);
 
             try {
-                this.simulationEngine.stop();
+                this.simulation.stop();
             } catch (InterruptedException ignored) {}
         });
     }

@@ -55,7 +55,11 @@ public class Simulation implements Runnable {
 
     private final Boundary boundary;
 
-    volatile SimulationStatus executionStatus;
+    private Thread simulationThread;
+
+    private volatile SimulationExecutionStatus executionStatus;
+
+    private SimulationAction simulationAction = SimulationAction.SLEEP.next();
 
     private int currentDay;
 
@@ -230,7 +234,7 @@ public class Simulation implements Runnable {
     public void initialize() {
         this.generateAnimals();
         this.worldMap.growPlants(this.parameters.startPlantCount());
-        this.executionStatus = SimulationStatus.INITIALIZED;
+        this.executionStatus = SimulationExecutionStatus.INITIALIZED;
         this.currentDay = 1;
         this.simulationChanged("Initialized simulation");
     }
@@ -260,53 +264,89 @@ public class Simulation implements Runnable {
         }
     }
 
+    public void start() {
+        if (this.executionStatus.isStartable()) {
+            this.executionStatus = SimulationExecutionStatus.RUNNING;
+            this.simulationThread = new Thread(this);
+            this.simulationThread.start();
+        } else {
+            throw new IllegalThreadStateException(String.format(
+                "Cannot start a %s thread", this.executionStatus
+            ));
+        }
+    }
+
+    public void pause() throws InterruptedException {
+        if (this.executionStatus.isPausable()) {
+            this.executionStatus = SimulationExecutionStatus.PAUSED;
+            this.simulationThread.join();
+        } else {
+            throw new IllegalThreadStateException(String.format(
+                "Cannot pause a %s thread", this.executionStatus
+            ));
+        }
+    }
+
+    public void stop() throws InterruptedException {
+        if (this.executionStatus.isStoppable()) {
+            this.executionStatus = SimulationExecutionStatus.STOPPED;
+            this.simulationThread.join();
+        } else {
+            throw new IllegalThreadStateException(String.format(
+                "Cannot stop a %s thread", this.executionStatus
+            ));
+        }
+    }
+
     @Override
     public void run() {
-        int actionID = 0;
-        try {
-            while (this.worldMap.aliveAnimalCount() > 0 && this.executionStatus != SimulationStatus.STOPPED) {
-                switch (actionID++) {
-                    case 0 -> {
-                        this.worldMap.removeDeadAnimals(this.currentDay);
-                        this.simulationChanged("Removed dead animals", this.currentDay);
-                    }
-                    case 1 -> {
-                        this.worldMap.moveAnimals();
-                        this.simulationChanged("Moved animals", this.currentDay);
-                    }
-                    case 2 -> {
-                        this.worldMap.consumePlants();
-                        this.simulationChanged("Animals consumed plants", this.currentDay);
-                    }
-                    case 3 -> {
-                        this.reproduceAnimals();
-                        this.simulationChanged("Reproduced animals", this.currentDay);
-                    }
-                    case 4 -> {
-                        this.worldMap.growPlants(this.parameters.dailyPlantGrowth());
-                        this.simulationChanged("Grew new plants", this.currentDay);
-                    }
-                    default -> {
-                        actionID = 0;
-                        this.simulationChanged("Progressing to the next day...");
-                        this.currentDay++;
-                    }
+        while (this.executionStatus == SimulationExecutionStatus.RUNNING && this.worldMap.aliveAnimalCount() > 0) {
+            switch (this.simulationAction) {
+                case REMOVE_DEAD_ANIMALS -> {
+                    this.worldMap.removeDeadAnimals(this.currentDay);
+                    this.simulationChanged("Removed dead animals", this.currentDay);
                 }
-
-                TimeUnit.MILLISECONDS.sleep(250);
-                while (this.executionStatus == SimulationStatus.PAUSED) {
-                    this.simulationChanged("Simulation paused");
-                    TimeUnit.MILLISECONDS.sleep(10);
+                case MOVE_ANIMALS -> {
+                    this.worldMap.moveAnimals();
+                    this.simulationChanged("Moved animals", this.currentDay);
+                }
+                case CONSUME_PLANTS -> {
+                    this.worldMap.consumePlants();
+                    this.simulationChanged("Animals consumed plants", this.currentDay);
+                }
+                case REPRODUCE_ANIMALS -> {
+                    this.reproduceAnimals();
+                    this.simulationChanged("Reproduced animals", this.currentDay);
+                }
+                case GROW_PLANTS -> {
+                    this.worldMap.growPlants(this.parameters.dailyPlantGrowth());
+                    this.simulationChanged("Grew new plants", this.currentDay);
+                }
+                case SLEEP -> {
+                    this.simulationChanged("Progressing to the next day...");
+                    this.currentDay++;
                 }
             }
 
-            this.simulationChanged(
-                this.worldMap.aliveAnimalCount() == 0 ?
-                    "All animals are dead" :
-                    "Simulation stopped"
-            );
-        } catch (InterruptedException exception) {
-            Thread.currentThread().interrupt();
+            this.simulationAction = this.simulationAction.next();
+
+            switch (this.executionStatus) {
+                case PAUSED -> this.simulationChanged("Simulation paused");
+                case STOPPED -> this.simulationChanged("Simulation stopped");
+                default -> {
+                    try {
+                        TimeUnit.MILLISECONDS.sleep(100);
+                    } catch (InterruptedException exception) {
+                        this.simulationChanged("Simulation interrupted");
+                        this.executionStatus = SimulationExecutionStatus.STOPPED;
+                    }
+                }
+            }
+        }
+
+        if (this.worldMap.aliveAnimalCount() == 0) {
+            this.simulationChanged("All animals are dead");
+            this.executionStatus = SimulationExecutionStatus.STOPPED;
         }
     }
 }
