@@ -1,6 +1,6 @@
 package agh.ics.oop.simulation;
 
-enum SimulationExecutionStatus {
+public enum SimulationExecutionStatus {
     INITIALIZED(true, false, true),
     RUNNING(false, true, true),
     PAUSED(true, false, true),

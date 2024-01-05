@@ -29,7 +29,7 @@ public class SimulationWindow extends Application {
         this.configureStage(stage, viewRoot);
 
         SimulationPresenter presenter = loader.getController();
-        presenter.setSimulation(this.simulation);
+        presenter.setSimulationEngine(this.simulation);
 
         stage.show();
     }

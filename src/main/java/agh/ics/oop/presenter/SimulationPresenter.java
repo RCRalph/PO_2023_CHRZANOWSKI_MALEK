@@ -6,6 +6,7 @@ import agh.ics.oop.model.map.Boundary;
 import agh.ics.oop.model.map.WorldMap;
 import agh.ics.oop.simulation.Simulation;
 import agh.ics.oop.simulation.SimulationChangeListener;
+import agh.ics.oop.simulation.SimulationEngine;
 import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.geometry.HPos;
@@ -34,20 +35,17 @@ public class SimulationPresenter implements SimulationChangeListener {
     @FXML
     private Button stopButton;
 
-    private Simulation simulation;
+    private SimulationEngine simulationEngine;
 
-    public void setSimulation(Simulation simulation) {
-        if (this.simulation != null) {
-            this.simulation.unsubscribe(this);
-
-            try {
-                this.simulation.stop();
-            } catch (InterruptedException ignored) {}
+    public void setSimulationEngine(Simulation simulation) {
+        if (this.simulationEngine != null) {
+            this.simulationEngine.unsubscribe(this);
+            this.simulationEngine.stop();
         }
 
-        this.simulation = simulation;
-        this.simulation.subscribe(this);
-        this.simulation.initialize();
+        this.simulationEngine = simulation.getEngine();
+        this.simulationEngine.subscribe(this);
+        this.simulationEngine.initialize();
     }
 
     private void addToGridPane(ImageView imageView, int column, int row) {
@@ -80,11 +78,14 @@ public class SimulationPresenter implements SimulationChangeListener {
         }
     }
 
-    private void drawMap(WorldMap map) {
-        // Clear all WorldElements from map
+    private void clearGrid() {
         this.mapContent.getChildren().retainAll(this.mapContent.getChildren().get(0));
         this.mapContent.getColumnConstraints().clear();
         this.mapContent.getRowConstraints().clear();
+    }
+
+    private void drawMap(WorldMap map) {
+        this.clearGrid();
 
         Boundary boundary = map.getCurrentBounds();
         this.drawCoordinates(boundary);
@@ -107,11 +108,14 @@ public class SimulationPresenter implements SimulationChangeListener {
     }
 
     @Override
-    public void simulationMapChanged(WorldMap map, String message) {
-        Platform.runLater(() -> {
-            this.mapMessage.setText(message);
-            this.drawMap(map);
-        });
+    public void simulationChanged(WorldMap map, String message) {
+        this.simulationChanged(message);
+        Platform.runLater(() -> this.drawMap(map));
+    }
+
+    @Override
+    public void simulationChanged(String message) {
+        Platform.runLater(() -> this.mapMessage.setText(message));
     }
 
     @FXML
@@ -120,7 +124,7 @@ public class SimulationPresenter implements SimulationChangeListener {
         this.pauseButton.setDisable(false);
         this.stopButton.setDisable(false);
 
-        this.simulation.start();
+        this.simulationEngine.start();
     }
 
     @FXML
@@ -130,7 +134,7 @@ public class SimulationPresenter implements SimulationChangeListener {
         this.stopButton.setDisable(false);
 
         try {
-            this.simulation.pause();
+            this.simulationEngine.pause();
         } catch (InterruptedException ignored) {}
     }
 
@@ -140,8 +144,6 @@ public class SimulationPresenter implements SimulationChangeListener {
         this.pauseButton.setDisable(true);
         this.stopButton.setDisable(true);
 
-        try {
-            this.simulation.stop();
-        } catch (InterruptedException ignored) {}
+        this.simulationEngine.stop();
     }
 }
