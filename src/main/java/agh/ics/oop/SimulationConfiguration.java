@@ -24,7 +24,7 @@ public class SimulationConfiguration extends Application {
     private void configureStage(Stage primaryStage, BorderPane viewRoot) {
         var scene = new Scene(viewRoot);
         primaryStage.setScene(scene);
-        primaryStage.getIcons().add(new Image("images/laciaderpy.png"));
+        primaryStage.getIcons().add(new Image("animals/laciaderpy.png"));
         primaryStage.setTitle("Simulation");
         primaryStage.minWidthProperty().bind(viewRoot.minWidthProperty());
         primaryStage.minHeightProperty().bind(viewRoot.minHeightProperty());

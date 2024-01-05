@@ -6,16 +6,17 @@ import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 
 public class Plant implements WorldElement {
+    private static final Image IMAGE = new Image("grass.png");
+
     private final Vector2D position;
 
-    private final ImageView imageView;
+    private final ImageView imageView = new ImageView(IMAGE);
 
     public Plant(Vector2D position) {
         this.position = position;
 
-        this.imageView = new ImageView(new Image("images/grass.jpg"));
-        imageView.setFitWidth(SimulationPresenter.CELL_SIZE);
-        imageView.setFitHeight(SimulationPresenter.CELL_SIZE);
+        this.imageView.setFitWidth(SimulationPresenter.CELL_SIZE);
+        this.imageView.setFitHeight(SimulationPresenter.CELL_SIZE);
     }
 
     @Override

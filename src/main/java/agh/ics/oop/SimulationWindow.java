@@ -37,7 +37,7 @@ public class SimulationWindow extends Application {
     private void configureStage(Stage primaryStage, BorderPane viewRoot) {
         Scene scene = new Scene(viewRoot);
         primaryStage.setScene(scene);
-        primaryStage.getIcons().add(new Image("images/laciasweety.png"));
+        primaryStage.getIcons().add(new Image("animals/laciasweety.png"));
         primaryStage.setTitle(this.title);
         primaryStage.minWidthProperty().bind(viewRoot.minWidthProperty());
         primaryStage.minHeightProperty().bind(viewRoot.minHeightProperty());
