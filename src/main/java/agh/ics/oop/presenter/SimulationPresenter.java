@@ -37,6 +37,8 @@ public class SimulationPresenter implements SimulationChangeListener {
 
     private SimulationEngine simulationEngine;
 
+    private boolean saveToCSV;
+
     public void setSimulationEngine(Simulation simulation) {
         if (this.simulationEngine != null) {
             this.simulationEngine.unsubscribe(this);
@@ -46,6 +48,10 @@ public class SimulationPresenter implements SimulationChangeListener {
         this.simulationEngine = simulation.getEngine();
         this.simulationEngine.subscribe(this);
         this.simulationEngine.initialize();
+    }
+
+    public void setSaveToCSV(boolean saveToCSV) {
+        this.saveToCSV = saveToCSV;
     }
 
     private void addToGridPane(ImageView imageView, int column, int row) {

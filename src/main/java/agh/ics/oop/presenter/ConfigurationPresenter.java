@@ -100,6 +100,9 @@ public class ConfigurationPresenter implements Initializable {
     @FXML
     private Button saveButton;
 
+    @FXML
+    private CheckBox saveToCSV;
+
     private void showErrorMessage(String message) {
         this.messageLabel.setTextFill(Paint.valueOf("RED"));
         this.messageLabel.setText(message);
@@ -332,7 +335,8 @@ public class ConfigurationPresenter implements Initializable {
         try {
             new SimulationWindow(
                 String.format("%s (%s)", parameters.configurationName(), UUID.randomUUID()),
-                new SimulationConfigurator(parameters).createSimulation()
+                new SimulationConfigurator(parameters).createSimulation(),
+                this.saveToCSV.isSelected()
             ).start(new Stage());
 
             this.showMessage("Running simulation...");

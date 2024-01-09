@@ -16,9 +16,12 @@ public class SimulationWindow extends Application {
 
     private final Simulation simulation;
 
-    public SimulationWindow(String title, Simulation simulation) {
+    private final boolean saveToCSV;
+
+    public SimulationWindow(String title, Simulation simulation, boolean saveToCSV) {
         this.title = title;
         this.simulation = simulation;
+        this.saveToCSV = saveToCSV;
     }
 
     @Override
@@ -30,6 +33,7 @@ public class SimulationWindow extends Application {
 
         SimulationPresenter presenter = loader.getController();
         presenter.setSimulationEngine(this.simulation);
+        presenter.setSaveToCSV(this.saveToCSV);
 
         stage.show();
     }
