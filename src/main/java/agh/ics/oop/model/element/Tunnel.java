@@ -5,18 +5,22 @@ import agh.ics.oop.presenter.SimulationPresenter;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 
-public class Plant implements WorldElement {
-    private static final Image IMAGE = new Image("grass.png");
+public class Tunnel implements WorldElement {
+    private static final Image IMAGE = new Image("tunnel.png");
 
     private final Vector2D position;
 
-    private final ImageView imageView = new ImageView(IMAGE);
+    private final Vector2D exit;
 
-    public Plant(Vector2D position) {
+    private final ImageView imageView;
+
+    public Tunnel(Vector2D position, Vector2D exit) {
         this.position = position;
+        this.exit = exit;
 
-        this.imageView.setFitWidth(SimulationPresenter.CELL_SIZE);
-        this.imageView.setFitHeight(SimulationPresenter.CELL_SIZE);
+        this.imageView = new ImageView(IMAGE);
+        imageView.setFitWidth(SimulationPresenter.CELL_SIZE);
+        imageView.setFitHeight(SimulationPresenter.CELL_SIZE);
     }
 
     @Override
@@ -32,5 +36,9 @@ public class Plant implements WorldElement {
     @Override
     public ImageView getImageView() {
         return imageView;
+    }
+
+    public Vector2D getExit() {
+        return this.exit;
     }
 }

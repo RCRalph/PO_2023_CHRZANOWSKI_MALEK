@@ -9,7 +9,6 @@ import agh.ics.oop.simulation.SimulationChangeListener;
 import agh.ics.oop.simulation.SimulationEngine;
 import javafx.application.Platform;
 import javafx.fxml.FXML;
-import javafx.fxml.Initializable;
 import javafx.geometry.HPos;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
@@ -18,10 +17,7 @@ import javafx.scene.layout.ColumnConstraints;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.RowConstraints;
 
-import java.net.URL;
-import java.util.ResourceBundle;
-
-public class SimulationPresenter implements SimulationChangeListener, Initializable {
+public class SimulationPresenter implements SimulationChangeListener {
     public static final int CELL_SIZE = 75;
 
     @FXML
@@ -39,23 +35,23 @@ public class SimulationPresenter implements SimulationChangeListener, Initializa
     @FXML
     private Button stopButton;
 
-    private Simulation simulation;
-
     private SimulationEngine simulationEngine;
 
-    public void setSimulation(Simulation simulation) {
-        if (this.simulation != null) {
-            this.simulation.unsubscribe(this);
+    private boolean saveToCSV;
 
-            try {
-                this.simulationEngine.stop();
-            } catch (InterruptedException ignored) {}
+    public void setSimulationEngine(Simulation simulation) {
+        if (this.simulationEngine != null) {
+            this.simulationEngine.unsubscribe(this);
+            this.simulationEngine.stop();
         }
 
-        this.simulation = simulation;
-        this.simulation.subscribe(this);
-        this.simulation.initialize();
-        this.simulationEngine = new SimulationEngine(this.simulation);
+        this.simulationEngine = simulation.getEngine();
+        this.simulationEngine.subscribe(this);
+        this.simulationEngine.initialize();
+    }
+
+    public void setSaveToCSV(boolean saveToCSV) {
+        this.saveToCSV = saveToCSV;
     }
 
     private void addToGridPane(ImageView imageView, int column, int row) {
@@ -88,11 +84,14 @@ public class SimulationPresenter implements SimulationChangeListener, Initializa
         }
     }
 
-    private void drawMap(WorldMap map) {
-        // Clear all WorldElements from map
+    private void clearGrid() {
         this.mapContent.getChildren().retainAll(this.mapContent.getChildren().get(0));
         this.mapContent.getColumnConstraints().clear();
         this.mapContent.getRowConstraints().clear();
+    }
+
+    private void drawMap(WorldMap map) {
+        this.clearGrid();
 
         Boundary boundary = map.getCurrentBounds();
         this.drawCoordinates(boundary);
@@ -115,39 +114,42 @@ public class SimulationPresenter implements SimulationChangeListener, Initializa
     }
 
     @Override
-    public void simulationMapChanged(WorldMap map, String message) {
-        Platform.runLater(() -> {
-            this.mapMessage.setText(message);
-            this.drawMap(map);
-        });
+    public void simulationChanged(WorldMap map, String message) {
+        this.simulationChanged(message);
+        Platform.runLater(() -> this.drawMap(map));
     }
 
     @Override
-    public void initialize(URL location, ResourceBundle resources) {
-        this.startButton.setOnAction(event -> {
-            this.startButton.setDisable(true);
-            this.pauseButton.setDisable(false);
-            this.stopButton.setDisable(false);
+    public void simulationChanged(String message) {
+        Platform.runLater(() -> this.mapMessage.setText(message));
+    }
 
-            this.simulationEngine.start();
-        });
+    @FXML
+    private void onStartButtonAction() {
+        this.startButton.setDisable(true);
+        this.pauseButton.setDisable(false);
+        this.stopButton.setDisable(false);
 
-        this.pauseButton.setOnAction(event -> {
-            this.startButton.setDisable(false);
-            this.pauseButton.setDisable(true);
-            this.stopButton.setDisable(false);
+        this.simulationEngine.start();
+    }
 
+    @FXML
+    private void onPauseButtonAction() {
+        this.startButton.setDisable(false);
+        this.pauseButton.setDisable(true);
+        this.stopButton.setDisable(false);
+
+        try {
             this.simulationEngine.pause();
-        });
+        } catch (InterruptedException ignored) {}
+    }
 
-        this.stopButton.setOnAction(event -> {
-            this.startButton.setDisable(true);
-            this.pauseButton.setDisable(true);
-            this.stopButton.setDisable(true);
+    @FXML
+    private void onStopButtonAction() {
+        this.startButton.setDisable(true);
+        this.pauseButton.setDisable(true);
+        this.stopButton.setDisable(true);
 
-            try {
-                this.simulationEngine.stop();
-            } catch (InterruptedException ignored) {}
-        });
+        this.simulationEngine.stop();
     }
 }

@@ -1,40 +1,92 @@
 package agh.ics.oop.simulation;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public class SimulationEngine {
     private final Simulation simulation;
 
-    private final Thread simulationThread;
+    private SimulationExecutionStatus simulationExecutionStatus;
+
+    private Thread simulationThread;
+
+    private final List<SimulationChangeListener> listeners = new ArrayList<>();
 
     public SimulationEngine(Simulation simulation) {
         this.simulation = simulation;
-        this.simulationThread = new Thread(this.simulation);
+    }
+
+    public SimulationExecutionStatus getExecutionStatus() {
+        return this.simulationExecutionStatus;
+    }
+
+    public synchronized void initialize() {
+        if (this.simulationExecutionStatus == null) {
+            this.simulation.initialize();
+            this.simulationExecutionStatus = SimulationExecutionStatus.INITIALIZED;
+        } else {
+            throw new IllegalStateException(String.format(
+                "Cannot initialize a %s simulation", this.simulationExecutionStatus
+            ));
+        }
     }
 
     public synchronized void start() {
-        switch (this.simulation.executionStatus) {
-            case INITIALIZED -> {
-                this.simulationThread.start();
-                this.simulation.executionStatus = SimulationStatus.RUNNING;
-            }
-            case PAUSED -> this.simulation.executionStatus = SimulationStatus.RUNNING;
-            default -> throw new IllegalThreadStateException("Invalid start status");
-        }
-    }
+        if (this.simulationExecutionStatus.isStartable()) {
+            this.simulationExecutionStatus = SimulationExecutionStatus.RUNNING;
 
-    public synchronized void pause() {
-        if (this.simulation.executionStatus == SimulationStatus.RUNNING) {
-            this.simulation.executionStatus = SimulationStatus.PAUSED;
+            this.simulationThread = new Thread(this.simulation);
+            this.simulationThread.start();
+
+            this.simulationStatusChanged("Simulation started");
         } else {
-            throw new IllegalThreadStateException("Invalid pause status");
+            throw new IllegalStateException(String.format(
+                "Cannot start a %s simulation", this.simulationExecutionStatus
+            ));
         }
     }
 
-    public synchronized void stop() throws InterruptedException {
-        if (this.simulation.executionStatus != SimulationStatus.STOPPED) {
-            this.simulation.executionStatus = SimulationStatus.STOPPED;
+    public synchronized void pause() throws InterruptedException {
+        if (this.simulationExecutionStatus.isPausable()) {
+            this.simulationExecutionStatus = SimulationExecutionStatus.PAUSED;
             this.simulationThread.join();
+            this.simulationStatusChanged("Simulation paused");
         } else {
-            throw new IllegalThreadStateException("Invalid stop status");
+            throw new IllegalStateException(String.format(
+                "Cannot pause a %s thread", this.simulationExecutionStatus
+            ));
         }
+    }
+
+    public synchronized void stop() {
+        if (this.simulationExecutionStatus.isStoppable()) {
+            this.simulationExecutionStatus = SimulationExecutionStatus.STOPPED;
+
+            try {
+                this.simulationThread.join();
+            } catch (InterruptedException ignored) {}
+
+            this.simulationStatusChanged("Simulation stopped");
+        } else {
+            throw new IllegalStateException(String.format(
+                "Cannot stop a %s thread", this.simulationExecutionStatus
+            ));
+        }
+    }
+
+    private void simulationStatusChanged(String message) {
+        for (SimulationChangeListener listener : this.listeners) {
+            listener.simulationChanged(message);
+        }
+    }
+
+    public void subscribe(SimulationChangeListener listener) {
+        this.listeners.add(listener);
+        this.simulation.subscribe(listener);
+    }
+
+    public void unsubscribe(SimulationChangeListener listener) {
+        this.listeners.remove(listener);
+        this.simulation.unsubscribe(listener);
     }
 }

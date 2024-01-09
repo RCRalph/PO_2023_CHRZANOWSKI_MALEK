@@ -16,9 +16,12 @@ public class SimulationWindow extends Application {
 
     private final Simulation simulation;
 
-    public SimulationWindow(String title, Simulation simulation) {
+    private final boolean saveToCSV;
+
+    public SimulationWindow(String title, Simulation simulation, boolean saveToCSV) {
         this.title = title;
         this.simulation = simulation;
+        this.saveToCSV = saveToCSV;
     }
 
     @Override
@@ -29,7 +32,8 @@ public class SimulationWindow extends Application {
         this.configureStage(stage, viewRoot);
 
         SimulationPresenter presenter = loader.getController();
-        presenter.setSimulation(this.simulation);
+        presenter.setSimulationEngine(this.simulation);
+        presenter.setSaveToCSV(this.saveToCSV);
 
         stage.show();
     }
@@ -37,7 +41,7 @@ public class SimulationWindow extends Application {
     private void configureStage(Stage primaryStage, BorderPane viewRoot) {
         Scene scene = new Scene(viewRoot);
         primaryStage.setScene(scene);
-        primaryStage.getIcons().add(new Image("images/laciasweety.png"));
+        primaryStage.getIcons().add(new Image("animals/laciasweety.png"));
         primaryStage.setTitle(this.title);
         primaryStage.minWidthProperty().bind(viewRoot.minWidthProperty());
         primaryStage.minHeightProperty().bind(viewRoot.minHeightProperty());

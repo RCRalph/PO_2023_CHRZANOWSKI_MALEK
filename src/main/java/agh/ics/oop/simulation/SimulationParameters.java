@@ -1,5 +1,6 @@
 package agh.ics.oop.simulation;
 
+import agh.ics.oop.model.element.EnergyParameters;
 import com.google.gson.JsonObject;
 
 import java.util.Optional;
@@ -53,7 +54,7 @@ public record SimulationParameters(
             return Optional.of(
                 "Tunnel entrances count should not exceed total position count of the given map"
             );
-        } else if (!Simulation.WORLD_MAPS.containsKey(this.worldMapVariant)) {
+        } else if (!SimulationConfigurator.WORLD_MAPS.containsKey(this.worldMapVariant)) {
             return Optional.of("World map variant should point to a valid class");
         }
 
@@ -65,7 +66,7 @@ public record SimulationParameters(
             return Optional.of("Start plant count should be greater than or equal to 0");
         } else if (this.dailyPlantGrowth() < 0) {
             return Optional.of("Daily plant growth should be greater than or equal to 0");
-        } else if (!Simulation.PLANT_GROWTH_INDICATORS.containsKey(this.plantGrowthIndicatorVariant)) {
+        } else if (!SimulationConfigurator.PLANT_GROWTH_INDICATORS.containsKey(this.plantGrowthIndicatorVariant)) {
             return Optional.of("Plant growth indicator variant should point to a valid class");
         }
 
@@ -79,7 +80,7 @@ public record SimulationParameters(
             return Optional.of("Minimal mutation count should be greater or equal to 0");
         } else if (this.maximumMutationCount() > this.geneCount()) {
             return Optional.of("Maximal mutation count should be less than or equal to gene count");
-        } else if (!Simulation.CHILD_GENES_INDICATORS.containsKey(this.childGenesIndicatorVariant())) {
+        } else if (!SimulationConfigurator.CHILD_GENES_INDICATORS.containsKey(this.childGenesIndicatorVariant())) {
             return Optional.of("Mutation variant should point to a valid class");
         }
 
@@ -97,7 +98,7 @@ public record SimulationParameters(
             return Optional.of("Healthy animal energy should be greater than 0");
         } else if (this.healthyAnimalEnergy() < this.reproductionEnergy()) {
             return Optional.of("Reproduction energy should not exceed healthy energy level");
-        } else if (!Simulation.BEHAVIOUR_INDICATORS.containsKey(this.animalBehaviourIndicatorVariant)) {
+        } else if (!SimulationConfigurator.BEHAVIOUR_INDICATORS.containsKey(this.animalBehaviourIndicatorVariant)) {
             return Optional.of("Animal behaviour indicator variant should point to a valid class");
         }
 
@@ -114,6 +115,15 @@ public record SimulationParameters(
             .or(this::validatePlants)
             .or(this::validateGenes)
             .or(this::validateAnimals);
+    }
+
+    public EnergyParameters getEnergyParameters() {
+        return new EnergyParameters(
+            this.animalStartEnergy(),
+            this.animalMoveEnergy(),
+            this.plantEnergy(),
+            this.reproductionEnergy()
+        );
     }
 
     public JsonObject toJsonObject() {

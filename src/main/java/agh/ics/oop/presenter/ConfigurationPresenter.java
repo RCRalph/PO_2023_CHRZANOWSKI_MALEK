@@ -3,7 +3,7 @@ package agh.ics.oop.presenter;
 import agh.ics.oop.SimulationWindow;
 import agh.ics.oop.model.map.UndergroundTunnelsWorldMap;
 import agh.ics.oop.simulation.InvalidSimulationConfigurationException;
-import agh.ics.oop.simulation.Simulation;
+import agh.ics.oop.simulation.SimulationConfigurator;
 import agh.ics.oop.simulation.SimulationParameters;
 import com.google.gson.*;
 import javafx.beans.property.SimpleBooleanProperty;
@@ -100,6 +100,9 @@ public class ConfigurationPresenter implements Initializable {
     @FXML
     private Button saveButton;
 
+    @FXML
+    private CheckBox saveToCSV;
+
     private void showErrorMessage(String message) {
         this.messageLabel.setTextFill(Paint.valueOf("RED"));
         this.messageLabel.setText(message);
@@ -176,11 +179,11 @@ public class ConfigurationPresenter implements Initializable {
             new SpinnerValueFactory.IntegerSpinnerValueFactory(1, Integer.MAX_VALUE)
         );
 
-        List<String> mapVariants = new ArrayList<>(Simulation.WORLD_MAPS.keySet());
+        List<String> mapVariants = new ArrayList<>(SimulationConfigurator.WORLD_MAPS.keySet());
         this.mapVariant.setItems(FXCollections.observableList(mapVariants));
         this.mapVariant.disableProperty().bind(this.isReadOnly);
         this.mapVariant.setOnAction(event -> this.shouldShowTunnels.setValue(
-            Simulation.WORLD_MAPS.get(this.mapVariant.getValue()) == UndergroundTunnelsWorldMap.class
+            SimulationConfigurator.WORLD_MAPS.get(this.mapVariant.getValue()) == UndergroundTunnelsWorldMap.class
         ));
         this.mapVariant.setValue(mapVariants.get(0));
 
@@ -189,7 +192,7 @@ public class ConfigurationPresenter implements Initializable {
             new SpinnerValueFactory.IntegerSpinnerValueFactory(0, Integer.MAX_VALUE)
         );
 
-        List<String> plantGrowthVariants = new ArrayList<>(Simulation.PLANT_GROWTH_INDICATORS.keySet());
+        List<String> plantGrowthVariants = new ArrayList<>(SimulationConfigurator.PLANT_GROWTH_INDICATORS.keySet());
         this.plantGrowthVariant.setItems(FXCollections.observableList(plantGrowthVariants));
         this.plantGrowthVariant.disableProperty().bind(this.isReadOnly);
         this.plantGrowthVariant.setValue(plantGrowthVariants.get(0));
@@ -214,7 +217,7 @@ public class ConfigurationPresenter implements Initializable {
             new SpinnerValueFactory.IntegerSpinnerValueFactory(1, Integer.MAX_VALUE)
         );
 
-        List<String> mutationVariants = new ArrayList<>(Simulation.CHILD_GENES_INDICATORS.keySet());
+        List<String> mutationVariants = new ArrayList<>(SimulationConfigurator.CHILD_GENES_INDICATORS.keySet());
         this.mutationVariant.setItems(FXCollections.observableList(mutationVariants));
         this.mutationVariant.disableProperty().bind(this.isReadOnly);
         this.mutationVariant.setValue(mutationVariants.get(0));
@@ -254,7 +257,7 @@ public class ConfigurationPresenter implements Initializable {
             new SpinnerValueFactory.IntegerSpinnerValueFactory(0, Integer.MAX_VALUE)
         );
 
-        List<String> behaviourIndicators = new ArrayList<>(Simulation.BEHAVIOUR_INDICATORS.keySet());
+        List<String> behaviourIndicators = new ArrayList<>(SimulationConfigurator.BEHAVIOUR_INDICATORS.keySet());
         this.animalBehaviourVariant.setItems(FXCollections.observableList(behaviourIndicators));
         this.animalBehaviourVariant.disableProperty().bind(this.isReadOnly);
         this.animalBehaviourVariant.setValue(behaviourIndicators.get(0));
@@ -297,7 +300,7 @@ public class ConfigurationPresenter implements Initializable {
             this.mapWidth.getValue(),
             this.mapHeight.getValue(),
             this.mapVariant.getValue(),
-            Simulation.WORLD_MAPS.get(this.mapVariant.getValue()) == UndergroundTunnelsWorldMap.class ?
+            SimulationConfigurator.WORLD_MAPS.get(this.mapVariant.getValue()) == UndergroundTunnelsWorldMap.class ?
                 this.tunnelCount.getValue() : 0,
 
             this.geneSize.getValue(),
@@ -330,11 +333,10 @@ public class ConfigurationPresenter implements Initializable {
         }
 
         try {
-            Simulation simulation = new Simulation(parameters);
-
             new SimulationWindow(
                 String.format("%s (%s)", parameters.configurationName(), UUID.randomUUID()),
-                simulation
+                new SimulationConfigurator(parameters).createSimulation(),
+                this.saveToCSV.isSelected()
             ).start(new Stage());
 
             this.showMessage("Running simulation...");

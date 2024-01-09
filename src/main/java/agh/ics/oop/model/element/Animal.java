@@ -17,20 +17,20 @@ import java.util.Random;
 
 public class Animal implements WorldElement {
     private static final List<Image> ANIMAL_IMAGES = List.of(
-        new Image("images/laciaalien.png"),
-        new Image("images/laciaangy.png"),
-        new Image("images/laciababy.png"),
-        new Image("images/laciaconfused.png"),
-        new Image("images/laciaderpy.png"),
-        new Image("images/laciadisgusted.png"),
-        new Image("images/laciaeepy.png"),
-        new Image("images/laciahidy.png"),
-        new Image("images/laciajudgy.png"),
-        new Image("images/lacialovely.png"),
-        new Image("images/laciamlem.png"),
-        new Image("images/laciasweety.png"),
-        new Image("images/laciatired.png"),
-        new Image("images/laciawtf.png")
+        new Image("animals/laciaalien.png"),
+        new Image("animals/laciaangy.png"),
+        new Image("animals/laciababy.png"),
+        new Image("animals/laciaconfused.png"),
+        new Image("animals/laciaderpy.png"),
+        new Image("animals/laciadisgusted.png"),
+        new Image("animals/laciaeepy.png"),
+        new Image("animals/laciahidy.png"),
+        new Image("animals/laciajudgy.png"),
+        new Image("animals/lacialovely.png"),
+        new Image("animals/laciamlem.png"),
+        new Image("animals/laciasweety.png"),
+        new Image("animals/laciatired.png"),
+        new Image("animals/laciawtf.png")
     );
 
     private static final int IMAGE_SIZE = SimulationPresenter.CELL_SIZE * 4 / 5;
