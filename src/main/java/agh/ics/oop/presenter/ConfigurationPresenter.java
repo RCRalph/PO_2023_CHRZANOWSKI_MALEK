@@ -171,12 +171,12 @@ public class ConfigurationPresenter implements Initializable {
 
         this.mapWidth.disableProperty().bind(this.isReadOnly);
         this.mapWidth.setValueFactory(
-            new SpinnerValueFactory.IntegerSpinnerValueFactory(1, Integer.MAX_VALUE)
+            new SpinnerValueFactory.IntegerSpinnerValueFactory(1, Short.MAX_VALUE)
         );
 
         this.mapHeight.disableProperty().bind(this.isReadOnly);
         this.mapHeight.setValueFactory(
-            new SpinnerValueFactory.IntegerSpinnerValueFactory(1, Integer.MAX_VALUE)
+            new SpinnerValueFactory.IntegerSpinnerValueFactory(1, Short.MAX_VALUE)
         );
 
         List<String> mapVariants = new ArrayList<>(SimulationConfigurator.WORLD_MAPS.keySet());
@@ -189,7 +189,7 @@ public class ConfigurationPresenter implements Initializable {
 
         this.tunnelCount.disableProperty().bind(this.isReadOnly.or(this.shouldShowTunnels.not()));
         this.tunnelCount.setValueFactory(
-            new SpinnerValueFactory.IntegerSpinnerValueFactory(0, Integer.MAX_VALUE)
+            new SpinnerValueFactory.IntegerSpinnerValueFactory(0, Short.MAX_VALUE)
         );
 
         List<String> plantGrowthVariants = new ArrayList<>(SimulationConfigurator.PLANT_GROWTH_INDICATORS.keySet());
@@ -199,22 +199,22 @@ public class ConfigurationPresenter implements Initializable {
 
         this.initialPlantCount.disableProperty().bind(this.isReadOnly);
         this.initialPlantCount.setValueFactory(
-            new SpinnerValueFactory.IntegerSpinnerValueFactory(0, Integer.MAX_VALUE)
+            new SpinnerValueFactory.IntegerSpinnerValueFactory(0, Short.MAX_VALUE)
         );
 
         this.dailyPlantGrowth.disableProperty().bind(this.isReadOnly);
         this.dailyPlantGrowth.setValueFactory(
-            new SpinnerValueFactory.IntegerSpinnerValueFactory(0, Integer.MAX_VALUE)
+            new SpinnerValueFactory.IntegerSpinnerValueFactory(0, Short.MAX_VALUE)
         );
 
         this.plantEnergy.disableProperty().bind(this.isReadOnly);
         this.plantEnergy.setValueFactory(
-            new SpinnerValueFactory.IntegerSpinnerValueFactory(0, Integer.MAX_VALUE)
+            new SpinnerValueFactory.IntegerSpinnerValueFactory(0, Short.MAX_VALUE)
         );
 
         this.geneSize.disableProperty().bind(this.isReadOnly);
         this.geneSize.setValueFactory(
-            new SpinnerValueFactory.IntegerSpinnerValueFactory(1, Integer.MAX_VALUE)
+            new SpinnerValueFactory.IntegerSpinnerValueFactory(1, Short.MAX_VALUE)
         );
 
         List<String> mutationVariants = new ArrayList<>(SimulationConfigurator.CHILD_GENES_INDICATORS.keySet());
@@ -224,37 +224,37 @@ public class ConfigurationPresenter implements Initializable {
 
         this.minMutationCount.disableProperty().bind(this.isReadOnly);
         this.minMutationCount.setValueFactory(
-            new SpinnerValueFactory.IntegerSpinnerValueFactory(0, Integer.MAX_VALUE)
+            new SpinnerValueFactory.IntegerSpinnerValueFactory(0, Short.MAX_VALUE)
         );
 
         this.maxMutationCount.disableProperty().bind(this.isReadOnly);
         this.maxMutationCount.setValueFactory(
-            new SpinnerValueFactory.IntegerSpinnerValueFactory(0, Integer.MAX_VALUE)
+            new SpinnerValueFactory.IntegerSpinnerValueFactory(0, Short.MAX_VALUE)
         );
 
         this.initialAnimalCount.disableProperty().bind(this.isReadOnly);
         this.initialAnimalCount.setValueFactory(
-            new SpinnerValueFactory.IntegerSpinnerValueFactory(1, Integer.MAX_VALUE)
+            new SpinnerValueFactory.IntegerSpinnerValueFactory(1, Short.MAX_VALUE)
         );
 
         this.initialAnimalEnergy.disableProperty().bind(this.isReadOnly);
         this.initialAnimalEnergy.setValueFactory(
-            new SpinnerValueFactory.IntegerSpinnerValueFactory(0, Integer.MAX_VALUE)
+            new SpinnerValueFactory.IntegerSpinnerValueFactory(0, Short.MAX_VALUE)
         );
 
         this.animalMovementEnergy.disableProperty().bind(this.isReadOnly);
         this.animalMovementEnergy.setValueFactory(
-            new SpinnerValueFactory.IntegerSpinnerValueFactory(0, Integer.MAX_VALUE)
+            new SpinnerValueFactory.IntegerSpinnerValueFactory(0, Short.MAX_VALUE)
         );
 
         this.healthyAnimalEnergy.disableProperty().bind(this.isReadOnly);
         this.healthyAnimalEnergy.setValueFactory(
-            new SpinnerValueFactory.IntegerSpinnerValueFactory(0, Integer.MAX_VALUE)
+            new SpinnerValueFactory.IntegerSpinnerValueFactory(0, Short.MAX_VALUE)
         );
 
         this.animalReproductionEnergy.disableProperty().bind(this.isReadOnly);
         this.animalReproductionEnergy.setValueFactory(
-            new SpinnerValueFactory.IntegerSpinnerValueFactory(0, Integer.MAX_VALUE)
+            new SpinnerValueFactory.IntegerSpinnerValueFactory(0, Short.MAX_VALUE)
         );
 
         List<String> behaviourIndicators = new ArrayList<>(SimulationConfigurator.BEHAVIOUR_INDICATORS.keySet());
@@ -273,7 +273,12 @@ public class ConfigurationPresenter implements Initializable {
         this.mapWidth.getValueFactory().setValue(parameters.mapWidth());
         this.mapHeight.getValueFactory().setValue(parameters.mapHeight());
         this.mapVariant.setValue(parameters.worldMapVariant());
-        this.tunnelCount.getValueFactory().setValue(parameters.tunnelCount());
+        if (this.shouldShowTunnels.get()) {
+            this.tunnelCount.getValueFactory().setValue(
+                parameters.tunnelCount().isPresent() ?
+                    parameters.tunnelCount().get() : 0
+            );
+        }
 
         this.geneSize.getValueFactory().setValue(parameters.geneCount());
         this.mutationVariant.setValue(parameters.childGenesIndicatorVariant());
@@ -300,8 +305,7 @@ public class ConfigurationPresenter implements Initializable {
             this.mapWidth.getValue(),
             this.mapHeight.getValue(),
             this.mapVariant.getValue(),
-            SimulationConfigurator.WORLD_MAPS.get(this.mapVariant.getValue()) == UndergroundTunnelsWorldMap.class ?
-                this.tunnelCount.getValue() : 0,
+            Optional.ofNullable(this.tunnelCount.getValue()),
 
             this.geneSize.getValue(),
             this.minMutationCount.getValue(),
@@ -334,7 +338,8 @@ public class ConfigurationPresenter implements Initializable {
 
         try {
             new SimulationWindow(
-                String.format("%s (%s)", parameters.configurationName(), UUID.randomUUID()),
+                parameters.configurationName(),
+                UUID.randomUUID(),
                 new SimulationConfigurator(parameters).createSimulation(),
                 this.saveToCSV.isSelected()
             ).start(new Stage());

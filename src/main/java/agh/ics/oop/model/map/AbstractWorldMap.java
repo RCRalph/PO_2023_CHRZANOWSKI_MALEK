@@ -88,24 +88,28 @@ abstract class AbstractWorldMap implements WorldMap {
             result.add(this.plants.get(position));
         }
 
-        if (this.animals.isOccupied(position)) {
-            result.add(
-                this.animals.animalsAt(position)
-                    .stream()
-                    .min(new DarwinistAnimalComparator())
-                    .orElseThrow()
-            );
+        synchronized (this.animals) {
+            if (this.animals.isOccupied(position)) {
+                result.add(
+                    this.animals.animalsAt(position)
+                        .stream()
+                        .min(new DarwinistAnimalComparator())
+                        .orElseThrow()
+                );
+            }
         }
 
         return result;
     }
 
     @Override
-    public List<WorldElement> getElements() {
-        List<WorldElement> result = new ArrayList<>(this.animals.values());
-        result.addAll(this.plants.values());
+    public List<Animal> animalsAt(Vector2D position) {
+        return Collections.unmodifiableList(this.animals.animalsAt(position));
+    }
 
-        return Collections.unmodifiableList(result);
+    @Override
+    public Collection<Animal> getAnimals() {
+        return animals.values();
     }
 
     @Override
@@ -116,6 +120,20 @@ abstract class AbstractWorldMap implements WorldMap {
     @Override
     public int aliveAnimalCount() {
         return this.animals.size();
+    }
+
+    @Override
+    public int plantCount() {
+        return this.plants.keySet().size();
+    }
+
+    @Override
+    public long freeFieldCount() {
+        return this.getCurrentBounds()
+            .allPossiblePositions()
+            .stream()
+            .filter(position -> !this.isOccupied(position))
+            .count();
     }
 
     @Override

@@ -34,8 +34,6 @@ public class Animal implements WorldElement {
         new Image("animals/laciawtf.png")
     );
 
-    private static final int IMAGE_SIZE = SimulationPresenter.CELL_SIZE * 4 / 5;
-
     private final List<Gene> genes;
 
     private final int birthday;
@@ -90,8 +88,6 @@ public class Animal implements WorldElement {
         this.orientation = MapDirection.random();
         this.geneIndex = new Random().nextInt(genes.size());
 
-        this.imageView.setFitWidth(IMAGE_SIZE);
-        this.imageView.setFitHeight(IMAGE_SIZE);
         this.imageView.addEventHandler(javafx.scene.input.MouseEvent.MOUSE_CLICKED, event -> {
             this.isBeingFollowed = !isBeingFollowed;
         });
@@ -131,6 +127,12 @@ public class Animal implements WorldElement {
         return this.imageView;
     }
 
+    @Override
+    public void setImageViewSize(double cellSize) {
+        this.imageView.setFitWidth(cellSize * 0.8);
+        this.imageView.setFitHeight(cellSize * 0.8);
+    }
+
     public MapDirection getOrientation() {
         return this.orientation;
     }
@@ -162,15 +164,10 @@ public class Animal implements WorldElement {
     public int getPlantsEaten(){
         return plantsEaten;
     }
-
-    public String getGenomeString(){
-        StringBuilder geneString = new StringBuilder();
-        for(Gene gene: this.genes){
-            geneString.append(" ").append(gene);
-        }
-        return geneString.toString();
+  
+    public List<Gene> getGenes() {
+        return Collections.unmodifiableList(this.genes);
     }
-
 
     public void consumePlant() {
         this.energyLevel += this.energyParameters.plantEnergy();

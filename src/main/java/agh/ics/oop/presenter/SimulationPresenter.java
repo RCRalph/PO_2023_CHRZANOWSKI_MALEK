@@ -3,11 +3,13 @@ package agh.ics.oop.presenter;
 import agh.ics.oop.model.Vector2D;
 import agh.ics.oop.model.element.Animal;
 import agh.ics.oop.model.element.WorldElement;
+import agh.ics.oop.model.element.gene.Gene;
 import agh.ics.oop.model.map.Boundary;
 import agh.ics.oop.model.map.WorldMap;
 import agh.ics.oop.simulation.Simulation;
 import agh.ics.oop.simulation.SimulationChangeListener;
-import agh.ics.oop.simulation.SimulationEngine;
+import agh.ics.oop.simulation.SimulationStatistics;
+import com.opencsv.CSVWriter;
 import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.geometry.HPos;
@@ -25,9 +27,11 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 
-public class SimulationPresenter implements SimulationChangeListener {
-    public static final int CELL_SIZE = 75;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.util.*;
 
+public class SimulationPresenter implements SimulationChangeListener {
     @FXML
     private Label mapMessage;
 
@@ -43,7 +47,33 @@ public class SimulationPresenter implements SimulationChangeListener {
     @FXML
     private Button stopButton;
 
-    private SimulationEngine simulationEngine;
+    @FXML
+    private Label currentDayLabel;
+
+    @FXML
+    private Label animalCountLabel;
+
+    @FXML
+    private Label plantCountLabel;
+
+    @FXML
+    private Label freeFieldLabel;
+
+    @FXML
+    private Label averageEnergyLabel;
+
+    @FXML
+    private Label averageLifespanLabel;
+
+    @FXML
+    private Label averageChildrenLabel;
+
+    @FXML
+    private GridPane popularGenomesGridPane;
+
+    private Simulation simulation;
+
+    private List<SimulationStatistics> simulationStatistics;
 
     private boolean saveToCSV;
 
@@ -83,36 +113,50 @@ public class SimulationPresenter implements SimulationChangeListener {
 
     private boolean seeDominatingGenotype = false;
 
+    private UUID uuid;
+
+
     public void setSimulationEngine(Simulation simulation) {
-        if (this.simulationEngine != null) {
-            this.simulationEngine.unsubscribe(this);
-            this.simulationEngine.stop();
+        if (this.simulation != null) {
+            this.simulation.unsubscribe(this);
+            this.simulation.getEngine().stop();
         }
 
-        this.simulationEngine = simulation.getEngine();
-        this.simulationEngine.subscribe(this);
-        this.simulationEngine.initialize();
+        this.simulation = simulation;
+        this.simulation.subscribe(this);
+        this.simulation.getEngine().initialize();
     }
 
     public void setSaveToCSV(boolean saveToCSV) {
+        this.simulationStatistics = new ArrayList<>();
         this.saveToCSV = saveToCSV;
     }
+  
+    public void setUUID(UUID uuid) {
+        this.uuid = uuid;
+    }
 
-    private void addToGridPane(ImageView imageView, int column, int row, String styleClass) {
+    private double getCellSize(Boundary boundary) {
+        return Math.min(
+            (this.mapContent.getScene().getHeight() - 150) / (boundary.height() + 2),
+            (this.mapContent.getScene().getWidth() - 450) / (boundary.width() + 2)
+        );
+    }
+  
+    private void addToGridPane(GridPane gridPane, ImageView imageView, int column, int row) {
         GridPane.setHalignment(imageView, HPos.CENTER);
         imageView.getStyleClass().clear();
         imageView.getStyleClass().add(styleClass);
-//        imageView.setStyle("-fx-border-color: " + getRGBString(borderColor)+";"+"-fx-border-width: 100px");
-        this.mapContent.add(imageView, column, row);
+        gridPane.add(imageView, column, row);
     }
 
-    private void addToGridPane(String text, int column, int row, String styleClass) {
+    private void addToGridPane(GridPane gridPane, String text, int column, int row) {
         Label label = new Label(text);
         label.getStyleClass().clear();
         label.getStyleClass().add(styleClass);
 //        label.setStyle("-fx-border-color: " + getRGBString(borderColor));
         GridPane.setHalignment(label, HPos.CENTER);
-        this.mapContent.add(label, column, row);
+        gridPane.add(label, column, row);
     }
 
     private String getRGBString(Color color){
@@ -122,36 +166,44 @@ public class SimulationPresenter implements SimulationChangeListener {
         return String.format("rgb(%f, %f, %f)", r,g,b);
     }
 
-
-    private void drawCoordinates(Boundary boundary) {
-        this.addToGridPane("y\\x", 0, 0, "coordinateLabel");
-        this.mapContent.getColumnConstraints().add(new ColumnConstraints(CELL_SIZE));
-        this.mapContent.getRowConstraints().add(new RowConstraints(CELL_SIZE));
+    private void drawCoordinates(Boundary boundary, double cellSize) {
+        this.addToGridPane(this.mapContent, "y\\x", 0, 0);
+        this.mapContent.getColumnConstraints().add(new ColumnConstraints(cellSize));
+        this.mapContent.getRowConstraints().add(new RowConstraints(cellSize));
 
         int horizontalCoordinateCount = boundary.upperRightCorner().x() - boundary.lowerLeftCorner().x() + 1,
             verticalCoordinateCount = boundary.upperRightCorner().y() - boundary.lowerLeftCorner().y() + 1;
 
         for (int i = 0; i < horizontalCoordinateCount; i++) {
-            this.mapContent.getColumnConstraints().add(new ColumnConstraints(CELL_SIZE));
-            this.addToGridPane(Integer.toString(i + boundary.lowerLeftCorner().x()), i + 1, 0, "coordinateLabel");
+            this.mapContent.getColumnConstraints().add(new ColumnConstraints(cellSize));
+            this.addToGridPane(
+                this.mapContent,
+                Integer.toString(i + boundary.lowerLeftCorner().x()),
+                i + 1,
+                0
+            );
         }
         for (int i = 0; i < verticalCoordinateCount; i++) {
-            this.mapContent.getRowConstraints().add(new RowConstraints(CELL_SIZE));
-            this.addToGridPane(Integer.toString(boundary.upperRightCorner().y() - i), 0, i + 1, "coordinateLabel");
+            this.mapContent.getRowConstraints().add(new RowConstraints(cellSize));
+            this.addToGridPane(
+                this.mapContent,
+                Integer.toString(boundary.upperRightCorner().y() - i),
+                0,
+                i + 1
+            );
         }
-    }
-
-    private void clearGrid() {
-        this.mapContent.getChildren().retainAll(this.mapContent.getChildren().get(0));
-        this.mapContent.getColumnConstraints().clear();
-        this.mapContent.getRowConstraints().clear();
     }
 
     private void drawMap(WorldMap map) {
-        this.clearGrid();
+        this.mapContent.getChildren().retainAll(this.mapContent.getChildren().get(0));
+        this.mapContent.getColumnConstraints().clear();
+        this.mapContent.getRowConstraints().clear();
 
         Boundary boundary = map.getCurrentBounds();
-        this.drawCoordinates(boundary);
+        double cellSize = this.getCellSize(boundary);
+
+        this.drawCoordinates(boundary, cellSize);
+
         for (int r = boundary.upperRightCorner().y(); r >= boundary.lowerLeftCorner().y(); r--) {
             for (int c = boundary.lowerLeftCorner().x(); c <= boundary.upperRightCorner().x(); c++) {
                 Vector2D position = new Vector2D(c, r);
@@ -164,7 +216,10 @@ public class SimulationPresenter implements SimulationChangeListener {
                         styleClass = "highlightPlants";
                     }
                     for (WorldElement element : map.objectsAt(position)) {
+                        element.setImageViewSize(cellSize);
+
                         this.addToGridPane(
+                            this.mapContent,
                             element.getImageView(),
                             c + 1 - boundary.lowerLeftCorner().x(),
                             boundary.upperRightCorner().y() - r + 1,
@@ -176,11 +231,50 @@ public class SimulationPresenter implements SimulationChangeListener {
         }
     }
 
+    private void updateStatistics(SimulationStatistics statistics) {
+        this.simulationStatistics.add(statistics);
+
+        this.currentDayLabel.setText(Integer.toString(statistics.day()));
+        this.animalCountLabel.setText(Integer.toString(statistics.animalCount()));
+        this.plantCountLabel.setText(Integer.toString(statistics.plantCount()));
+        this.freeFieldLabel.setText(Long.toString(statistics.freeFieldCount()));
+        this.averageEnergyLabel.setText(Double.toString(statistics.averageEnergyLevel()));
+        this.averageLifespanLabel.setText(Double.toString(statistics.averageLifespan()));
+        this.averageChildrenLabel.setText(Double.toString(statistics.averageChildren()));
+
+        this.popularGenomesGridPane.getChildren().clear();
+
+        List<Map.Entry<List<Gene>, Integer>> orderedGenomes = statistics.getOrderedGenomes();
+
+        for (int row = 0; row < orderedGenomes.size(); row++) {
+            this.addToGridPane(
+                this.popularGenomesGridPane,
+                Gene.listToString(orderedGenomes.get(row).getKey()),
+                0,
+                row
+            );
+
+            this.addToGridPane(
+                this.popularGenomesGridPane,
+                orderedGenomes.get(row).getValue().toString(),
+                1,
+                row
+            );
+        }
+    }
+
     @Override
-    public void simulationChanged(WorldMap map, String message, int currentDay) {
+    public void simulationChanged(String message, WorldMap map) {
         this.simulationChanged(message);
         this.simulationChanged(currentDay);
         Platform.runLater(() -> this.drawMap(map));
+    }
+
+    @Override
+    public void simulationChanged(String message, SimulationStatistics statistics) {
+        this.simulationChanged(message);
+
+        Platform.runLater(() -> this.updateStatistics(statistics));
     }
 
     @Override
@@ -218,6 +312,36 @@ public class SimulationPresenter implements SimulationChangeListener {
         Platform.runLater(() -> this.setFollowedStatistics(currentDay));
     }
 
+    private void exportStatisticsToCSV() {
+        try (CSVWriter writer = new CSVWriter(new FileWriter(String.format("%s.csv", this.uuid)))) {
+            writer.writeNext(new String[] {
+                "Day",
+                "Animal count",
+                "Plant count",
+                "Free field count",
+                "Average energy level",
+                "Average lifespan",
+                "Average children",
+                "Genome popularity"
+            });
+
+            for (SimulationStatistics statistics : this.simulationStatistics) {
+                writer.writeNext(new String[] {
+                    Integer.toString(statistics.day()),
+                    Integer.toString(statistics.animalCount()),
+                    Integer.toString(statistics.plantCount()),
+                    Long.toString(statistics.freeFieldCount()),
+                    Double.toString(statistics.averageEnergyLevel()),
+                    Double.toString(statistics.averageLifespan()),
+                    Double.toString(statistics.averageChildren()),
+                    statistics.getGenomePopularityString()
+                });
+            }
+        } catch (IOException exception) {
+            this.mapMessage.setText(exception.toString());
+        }
+    }
+
     @FXML
     private void onStartButtonAction() {
         this.startButton.setDisable(true);
@@ -226,7 +350,7 @@ public class SimulationPresenter implements SimulationChangeListener {
         this.preferredPlantFields.setDisable(true);
         this.dominatingGenotype.setDisable(true);
 
-        this.simulationEngine.start();
+        this.simulation.getEngine().start();
     }
 
     @FXML
@@ -238,7 +362,7 @@ public class SimulationPresenter implements SimulationChangeListener {
         this.dominatingGenotype.setDisable(false);
 
         try {
-            this.simulationEngine.pause();
+            this.simulation.getEngine().pause();
         } catch (InterruptedException ignored) {}
     }
 
@@ -250,7 +374,11 @@ public class SimulationPresenter implements SimulationChangeListener {
         this.preferredPlantFields.setDisable(false);
         this.dominatingGenotype.setDisable(false);
 
-        this.simulationEngine.stop();
+        this.simulation.getEngine().stop();
+
+        if (this.saveToCSV) {
+            this.exportStatisticsToCSV();
+        }
     }
 
     @FXML

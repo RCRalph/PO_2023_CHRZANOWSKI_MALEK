@@ -10,16 +10,20 @@ import javafx.scene.layout.BorderPane;
 import javafx.stage.Stage;
 
 import java.io.IOException;
+import java.util.UUID;
 
 public class SimulationWindow extends Application {
-    private final String title;
+    private final String name;
+
+    private final UUID uuid;
 
     private final Simulation simulation;
 
     private final boolean saveToCSV;
 
-    public SimulationWindow(String title, Simulation simulation, boolean saveToCSV) {
-        this.title = title;
+    public SimulationWindow(String name, UUID uuid, Simulation simulation, boolean saveToCSV) {
+        this.name = name;
+        this.uuid = uuid;
         this.simulation = simulation;
         this.saveToCSV = saveToCSV;
     }
@@ -34,6 +38,13 @@ public class SimulationWindow extends Application {
         SimulationPresenter presenter = loader.getController();
         presenter.setSimulationEngine(this.simulation);
         presenter.setSaveToCSV(this.saveToCSV);
+        presenter.setUUID(this.uuid);
+
+        stage.setOnCloseRequest(event -> {
+            if (this.simulation.getEngine().getExecutionStatus().isStoppable()) {
+                this.simulation.getEngine().stop();
+            }
+        });
 
         stage.show();
     }
@@ -42,7 +53,7 @@ public class SimulationWindow extends Application {
         Scene scene = new Scene(viewRoot);
         primaryStage.setScene(scene);
         primaryStage.getIcons().add(new Image("animals/laciasweety.png"));
-        primaryStage.setTitle(this.title);
+        primaryStage.setTitle(String.format("%s (%s)", this.name, this.uuid));
         primaryStage.minWidthProperty().bind(viewRoot.minWidthProperty());
         primaryStage.minHeightProperty().bind(viewRoot.minHeightProperty());
     }

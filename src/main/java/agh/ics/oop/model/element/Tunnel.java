@@ -38,6 +38,12 @@ public class Tunnel implements WorldElement {
         return imageView;
     }
 
+    @Override
+    public void setImageViewSize(double cellSize) {
+        this.imageView.setFitWidth(cellSize);
+        this.imageView.setFitHeight(cellSize);
+    }
+
     public Vector2D getExit() {
         return this.exit;
     }

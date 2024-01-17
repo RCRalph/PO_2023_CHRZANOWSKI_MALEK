@@ -34,16 +34,19 @@ public enum Gene {
     }
 
     @Override
-    public String toString(){
-        return switch (this){
-            case FORWARD -> "F";
-            case FORWARD_RIGHT -> "FR";
-            case RIGHT -> "R";
-            case BACKWARD_RIGHT -> "BR";
-            case BACKWARD -> "B";
-            case BACKWARD_LEFT -> "BL";
-            case LEFT -> "L";
-            case FORWARD_LEFT -> "FL";
-        };
+    public String toString() {
+        return Integer.toString(this.ordinal() + 1);
+    }
+
+    public static String listToString(List<Gene> genome) {
+        StringBuilder builder = new StringBuilder("(");
+
+        for (Gene gene : genome) {
+            builder.append(gene.toString());
+        }
+
+        builder.append(")");
+
+        return builder.toString();
     }
 }

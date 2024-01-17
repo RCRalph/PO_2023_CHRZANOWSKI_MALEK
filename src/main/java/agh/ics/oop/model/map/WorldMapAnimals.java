@@ -48,6 +48,9 @@ class WorldMapAnimals {
     }
 
     public int size() {
-        return this.animals.values().size();
+        return this.animals.keySet()
+            .stream()
+            .mapToInt(item -> this.animals.get(item).size())
+            .sum();
     }
 }

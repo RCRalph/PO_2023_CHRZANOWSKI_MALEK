@@ -7,7 +7,9 @@ import agh.ics.oop.model.map.WorldMap;
 import java.util.List;
 
 public interface SimulationChangeListener {
-    void simulationChanged(WorldMap worldMap, String message, int currentDay);
+    void simulationChanged(String message, WorldMap worldMap);
+
+    void simulationChanged(String message, SimulationStatistics statistics);
 
     void simulationChanged(String message);
 
