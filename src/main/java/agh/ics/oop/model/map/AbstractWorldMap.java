@@ -88,13 +88,15 @@ abstract class AbstractWorldMap implements WorldMap {
             result.add(this.plants.get(position));
         }
 
-        if (this.animals.isOccupied(position)) {
-            result.add(
-                this.animals.animalsAt(position)
-                    .stream()
-                    .min(new DarwinistAnimalComparator())
-                    .orElseThrow()
-            );
+        synchronized (this.animals) {
+            if (this.animals.isOccupied(position)) {
+                result.add(
+                    this.animals.animalsAt(position)
+                        .stream()
+                        .min(new DarwinistAnimalComparator())
+                        .orElseThrow()
+                );
+            }
         }
 
         return result;
