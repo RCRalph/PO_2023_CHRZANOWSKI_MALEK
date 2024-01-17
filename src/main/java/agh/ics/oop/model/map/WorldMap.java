@@ -5,6 +5,7 @@ import agh.ics.oop.model.Vector2D;
 import agh.ics.oop.model.element.Animal;
 import agh.ics.oop.model.element.WorldElement;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 
@@ -91,4 +92,6 @@ public interface WorldMap extends PoseIndicator {
      * @return Boundary records of map bounds
      */
     Boundary getCurrentBounds();
+
+    Collection<Vector2D> getDesirablePositions();
 }

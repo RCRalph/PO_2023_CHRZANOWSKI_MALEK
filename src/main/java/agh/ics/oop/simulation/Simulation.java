@@ -7,6 +7,7 @@ import agh.ics.oop.model.element.EnergyParameters;
 import agh.ics.oop.model.element.behaviour.BehaviourIndicator;
 import agh.ics.oop.model.element.gene.ChildGenesIndicator;
 import agh.ics.oop.model.element.gene.Gene;
+import agh.ics.oop.model.map.Boundary;
 import agh.ics.oop.model.map.WorldMap;
 
 import java.util.ArrayList;
@@ -33,6 +34,8 @@ public class Simulation implements Runnable {
     private final SimulationEngine engine;
 
     private int currentDay;
+
+    private Animal followedAnimal;
 
     public Simulation(
         SimulationParameters parameters,
@@ -114,13 +117,27 @@ public class Simulation implements Runnable {
 
     private void simulationChanged(String message) {
         for (SimulationChangeListener listener : this.listeners) {
-            listener.simulationChanged(this.worldMap, message);
+            listener.simulationChanged(
+                    this.worldMap,
+                    message,
+                    this.currentDay
+            );
         }
     }
 
     private void simulationChanged(String message, int day) {
         for (SimulationChangeListener listener : this.listeners) {
-            listener.simulationChanged(this.worldMap, String.format("Day %d: %s", day, message));
+            listener.simulationChanged(
+                    this.worldMap,
+                    String.format("Day %d: %s", day, message),
+                    this.currentDay
+            );
+        }
+    }
+
+    private void simulationChanged(Animal followedAnimal){
+        for (SimulationChangeListener listener: this.listeners){
+            listener.simulationChanged(followedAnimal);
         }
     }
 
@@ -128,9 +145,19 @@ public class Simulation implements Runnable {
         return this.engine;
     }
 
+    private void setFollowing(){
+        for(Animal animal: this.animals){
+            if(animal.isBeingFollowed()){
+                simulationChanged(animal);
+            }
+            animal.setBeingFollowed(false);
+        }
+    }
+
     @Override
     public void run() {
         while (this.engine.getExecutionStatus() == SimulationExecutionStatus.RUNNING && this.worldMap.aliveAnimalCount() > 0) {
+            setFollowing();
             switch (this.simulationAction) {
                 case REMOVE_DEAD_ANIMALS -> {
                     this.worldMap.removeDeadAnimals(this.currentDay);

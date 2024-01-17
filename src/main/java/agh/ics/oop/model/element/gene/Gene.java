@@ -32,4 +32,18 @@ public enum Gene {
 
         return result;
     }
+
+    @Override
+    public String toString(){
+        return switch (this){
+            case FORWARD -> "F";
+            case FORWARD_RIGHT -> "FR";
+            case RIGHT -> "R";
+            case BACKWARD_RIGHT -> "BR";
+            case BACKWARD -> "B";
+            case BACKWARD_LEFT -> "BL";
+            case LEFT -> "L";
+            case FORWARD_LEFT -> "FL";
+        };
+    }
 }
