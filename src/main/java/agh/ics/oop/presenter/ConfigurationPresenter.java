@@ -334,7 +334,8 @@ public class ConfigurationPresenter implements Initializable {
 
         try {
             new SimulationWindow(
-                String.format("%s (%s)", parameters.configurationName(), UUID.randomUUID()),
+                parameters.configurationName(),
+                UUID.randomUUID(),
                 new SimulationConfigurator(parameters).createSimulation(),
                 this.saveToCSV.isSelected()
             ).start(new Stage());

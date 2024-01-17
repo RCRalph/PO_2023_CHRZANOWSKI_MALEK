@@ -8,6 +8,7 @@ import agh.ics.oop.model.map.WorldMap;
 import agh.ics.oop.simulation.Simulation;
 import agh.ics.oop.simulation.SimulationChangeListener;
 import agh.ics.oop.simulation.SimulationStatistics;
+import com.opencsv.CSVWriter;
 import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.geometry.HPos;
@@ -18,8 +19,9 @@ import javafx.scene.layout.ColumnConstraints;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.RowConstraints;
 
-import java.util.List;
-import java.util.Map;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.util.*;
 
 public class SimulationPresenter implements SimulationChangeListener {
     public static final int CELL_SIZE = 75;
@@ -38,6 +40,9 @@ public class SimulationPresenter implements SimulationChangeListener {
 
     @FXML
     private Button stopButton;
+
+    @FXML
+    private Label currentDayLabel;
 
     @FXML
     private Label animalCountLabel;
@@ -62,7 +67,11 @@ public class SimulationPresenter implements SimulationChangeListener {
 
     private Simulation simulation;
 
+    private List<SimulationStatistics> simulationStatistics;
+
     private boolean saveToCSV;
+
+    private UUID uuid;
 
     public void setSimulationEngine(Simulation simulation) {
         if (this.simulation != null) {
@@ -76,7 +85,12 @@ public class SimulationPresenter implements SimulationChangeListener {
     }
 
     public void setSaveToCSV(boolean saveToCSV) {
+        this.simulationStatistics = new ArrayList<>();
         this.saveToCSV = saveToCSV;
+    }
+
+    public void setUUID(UUID uuid) {
+        this.uuid = uuid;
     }
 
     private void addToGridPane(GridPane gridPane, ImageView imageView, int column, int row) {
@@ -146,6 +160,9 @@ public class SimulationPresenter implements SimulationChangeListener {
     }
 
     private void updateStatistics(SimulationStatistics statistics) {
+        this.simulationStatistics.add(statistics);
+
+        this.currentDayLabel.setText(Integer.toString(statistics.day()));
         this.animalCountLabel.setText(Integer.toString(statistics.animalCount()));
         this.plantCountLabel.setText(Integer.toString(statistics.plantCount()));
         this.freeFieldLabel.setText(Long.toString(statistics.freeFieldCount()));
@@ -155,12 +172,7 @@ public class SimulationPresenter implements SimulationChangeListener {
 
         this.popularGenomesGridPane.getChildren().clear();
 
-        List<Map.Entry<List<Gene>, Integer>> orderedGenomes = statistics.genomePopularity()
-            .entrySet()
-            .stream()
-            .sorted((item1, item2) -> -Integer.compare(item1.getValue(), item2.getValue()))
-            .limit(20)
-            .toList();
+        List<Map.Entry<List<Gene>, Integer>> orderedGenomes = statistics.getOrderedGenomes();
 
         for (int row = 0; row < orderedGenomes.size(); row++) {
             this.addToGridPane(
@@ -180,20 +192,52 @@ public class SimulationPresenter implements SimulationChangeListener {
     }
 
     @Override
-    public void simulationChanged(WorldMap map, String message) {
+    public void simulationChanged(String message, WorldMap map) {
         this.simulationChanged(message);
+
         Platform.runLater(() -> this.drawMap(map));
     }
 
     @Override
-    public void simulationChanged(SimulationStatistics statistics, String message) {
+    public void simulationChanged(String message, SimulationStatistics statistics) {
         this.simulationChanged(message);
+
         Platform.runLater(() -> this.updateStatistics(statistics));
     }
 
     @Override
     public void simulationChanged(String message) {
         Platform.runLater(() -> this.mapMessage.setText(message));
+    }
+
+    private void exportStatisticsToCSV() {
+        try (CSVWriter writer = new CSVWriter(new FileWriter(String.format("%s.csv", this.uuid)))) {
+            writer.writeNext(new String[] {
+                "Day",
+                "Animal count",
+                "Plant count",
+                "Free field count",
+                "Average energy level",
+                "Average lifespan",
+                "Average children",
+                "Genome popularity"
+            });
+
+            for (SimulationStatistics statistics : this.simulationStatistics) {
+                writer.writeNext(new String[] {
+                    Integer.toString(statistics.day()),
+                    Integer.toString(statistics.animalCount()),
+                    Integer.toString(statistics.plantCount()),
+                    Long.toString(statistics.freeFieldCount()),
+                    Double.toString(statistics.averageEnergyLevel()),
+                    Double.toString(statistics.averageLifespan()),
+                    Double.toString(statistics.averageChildren()),
+                    statistics.getGenomePopularityString()
+                });
+            }
+        } catch (IOException exception) {
+            this.mapMessage.setText(exception.toString());
+        }
     }
 
     @FXML
@@ -223,5 +267,9 @@ public class SimulationPresenter implements SimulationChangeListener {
         this.stopButton.setDisable(true);
 
         this.simulation.getEngine().stop();
+
+        if (this.saveToCSV) {
+            this.exportStatisticsToCSV();
+        }
     }
 }

@@ -62,9 +62,11 @@ public class SimulationEngine {
         if (this.simulationExecutionStatus.isStoppable()) {
             this.simulationExecutionStatus = SimulationExecutionStatus.STOPPED;
 
-            try {
-                this.simulationThread.join();
-            } catch (InterruptedException ignored) {}
+            if (this.simulationThread != null) {
+                try {
+                    this.simulationThread.join();
+                } catch (InterruptedException ignored) {}
+            }
 
             this.simulationStatusChanged("Simulation stopped");
         } else {

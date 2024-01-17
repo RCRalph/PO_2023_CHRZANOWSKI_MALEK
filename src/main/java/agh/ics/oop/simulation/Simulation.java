@@ -105,7 +105,8 @@ public class Simulation implements Runnable {
         this.generateAnimals();
         this.worldMap.growPlants(this.parameters.startPlantCount());
         this.currentDay = 1;
-        this.simulationChanged("Initialized simulation", 0);
+        this.simulationChanged(this.getSimulationStatistics());
+        this.simulationChanged("Initialized simulation");
     }
 
     public void subscribe(SimulationChangeListener listener) {
@@ -120,13 +121,13 @@ public class Simulation implements Runnable {
 
     private void simulationChanged(String message) {
         for (SimulationChangeListener listener : this.listeners) {
-            listener.simulationChanged(this.getSimulationStatistics(), message);
+            listener.simulationChanged(message, this.worldMap);
         }
     }
 
-    private void simulationChanged(String message, int day) {
+    private void simulationChanged(SimulationStatistics statistics) {
         for (SimulationChangeListener listener : this.listeners) {
-            listener.simulationChanged(this.worldMap, String.format("Day %d: %s", day, message));
+            listener.simulationChanged("Updated statistics", statistics);
         }
     }
 
@@ -140,27 +141,27 @@ public class Simulation implements Runnable {
             switch (this.simulationAction) {
                 case REMOVE_DEAD_ANIMALS -> {
                     this.worldMap.removeDeadAnimals(this.currentDay);
-                    this.simulationChanged("Removed dead animals", this.currentDay);
+                    this.simulationChanged("Removed dead animals");
                 }
                 case MOVE_ANIMALS -> {
                     this.worldMap.moveAnimals();
-                    this.simulationChanged("Moved animals", this.currentDay);
+                    this.simulationChanged("Moved animals");
                 }
                 case CONSUME_PLANTS -> {
                     this.worldMap.consumePlants();
-                    this.simulationChanged("Animals consumed plants", this.currentDay);
+                    this.simulationChanged("Animals consumed plants");
                 }
                 case REPRODUCE_ANIMALS -> {
                     this.reproduceAnimals();
-                    this.simulationChanged("Reproduced animals", this.currentDay);
+                    this.simulationChanged("Reproduced animals");
                 }
                 case GROW_PLANTS -> {
                     this.worldMap.growPlants(this.parameters.dailyPlantGrowth());
-                    this.simulationChanged("Grew new plants", this.currentDay);
+                    this.simulationChanged("Grew new plants");
                 }
                 case SLEEP -> {
-                    this.simulationChanged("Progressing to the next day...");
                     this.currentDay++;
+                    this.simulationChanged(this.getSimulationStatistics());
                 }
             }
 
@@ -233,6 +234,7 @@ public class Simulation implements Runnable {
             .orElse(0);
 
         return new SimulationStatistics(
+            this.currentDay,
             this.worldMap.aliveAnimalCount(),
             this.worldMap.plantCount(),
             this.worldMap.freeFieldCount(),
