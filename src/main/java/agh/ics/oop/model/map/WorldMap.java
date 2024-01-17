@@ -113,4 +113,6 @@ public interface WorldMap extends PoseIndicator {
      * @return Boundary records of map bounds
      */
     Boundary getCurrentBounds();
+
+    Collection<Vector2D> getDesirablePositions();
 }

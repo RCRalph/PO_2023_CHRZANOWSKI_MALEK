@@ -140,4 +140,8 @@ abstract class AbstractWorldMap implements WorldMap {
     public Boundary getCurrentBounds() {
         return this.boundary;
     }
+
+    public Collection<Vector2D> getDesirablePositions(){
+        return this.plantGrowthIndicator.getDesirablePositions();
+    }
 }

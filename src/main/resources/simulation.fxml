@@ -3,6 +3,7 @@
 <?import javafx.geometry.*?>
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
+<?import javafx.scene.text.*?>
 
 <BorderPane minHeight="600.0" minWidth="900.0" stylesheets="@style.css" xmlns="http://javafx.com/javafx/17.0.2-ea" xmlns:fx="http://javafx.com/fxml/1" fx:controller="agh.ics.oop.presenter.SimulationPresenter">
     <top>
@@ -17,7 +18,7 @@
     </top>
 
     <center>
-        <GridPane fx:id="mapContent" alignment="CENTER" gridLinesVisible="true" />
+        <GridPane fx:id="mapContent" alignment="CENTER" gridLinesVisible="true" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="545.0" prefWidth="598.0" />
     </center>
    <bottom>
       <HBox alignment="BOTTOM_CENTER" spacing="10.0" BorderPane.alignment="CENTER">
@@ -34,6 +35,7 @@
          </padding>
       </HBox>
    </bottom>
+
    <left>
       <VBox prefWidth="225.0">
          <children>
@@ -50,8 +52,7 @@
                   <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
                   <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
                   <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
-                  <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
-              </rowConstraints>
+                  <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" /> </rowConstraints>
                <children>
                   <Label alignment="CENTER" contentDisplay="CENTER" styleClass="large-text" text="Simulation statistics" textAlignment="CENTER" GridPane.columnSpan="2" GridPane.halignment="CENTER" />
                   <Label text="Animal count" textAlignment="RIGHT" GridPane.halignment="RIGHT" GridPane.rowIndex="2" />
@@ -90,4 +91,134 @@
          </children>
       </VBox>
    </left>
+               <right>
+      <VBox prefHeight="647.0" prefWidth="210.0" BorderPane.alignment="CENTER">
+         <children>
+            <Label alignment="CENTER" prefHeight="18.0" prefWidth="218.0" text="Animal following" textAlignment="CENTER">
+               <font>
+                  <Font name="System Bold" size="14.0" />
+               </font>
+            </Label>
+            <GridPane alignment="CENTER" prefHeight="243.0" prefWidth="227.0">
+              <columnConstraints>
+                <ColumnConstraints hgrow="SOMETIMES" maxWidth="97.0" minWidth="10.0" prefWidth="97.0" />
+                <ColumnConstraints hgrow="SOMETIMES" maxWidth="99.0" minWidth="10.0" prefWidth="97.0" />
+              </columnConstraints>
+              <rowConstraints>
+                  <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
+              </rowConstraints>
+               <children>
+                  <Label alignment="CENTER" prefHeight="38.0" prefWidth="98.0" text="genotype:">
+                     <padding>
+                        <Insets bottom="3.0" left="3.0" top="3.0" />
+                     </padding></Label>
+                  <Label alignment="CENTER" prefHeight="44.0" prefWidth="103.0" text="activated gene:" GridPane.rowIndex="1">
+                     <padding>
+                        <Insets bottom="3.0" left="3.0" top="3.0" />
+                     </padding></Label>
+                  <Label alignment="CENTER" prefHeight="59.0" prefWidth="158.0" text="energy level:" GridPane.rowIndex="2">
+                     <padding>
+                        <Insets bottom="3.0" left="3.0" top="3.0" />
+                     </padding></Label>
+                  <Label alignment="CENTER" prefHeight="54.0" prefWidth="166.0" text="plants eaten:" GridPane.rowIndex="3">
+                     <padding>
+                        <Insets bottom="3.0" left="3.0" top="3.0" />
+                     </padding></Label>
+                  <Label alignment="CENTER" prefHeight="64.0" prefWidth="161.0" text="children count:" GridPane.rowIndex="4">
+                     <padding>
+                        <Insets bottom="3.0" left="3.0" top="3.0" />
+                     </padding></Label>
+                  <Label alignment="CENTER" prefHeight="56.0" prefWidth="157.0" text="descendant count:" GridPane.rowIndex="5">
+                     <padding>
+                        <Insets bottom="3.0" top="3.0" />
+                     </padding></Label>
+                  <Label alignment="CENTER" prefHeight="63.0" prefWidth="141.0" text="days alive:" GridPane.rowIndex="6">
+                     <padding>
+                        <Insets bottom="3.0" left="3.0" top="3.0" />
+                     </padding></Label>
+                  <Label alignment="CENTER" prefHeight="80.0" prefWidth="137.0" text="deathday:" GridPane.rowIndex="7">
+                     <padding>
+                        <Insets bottom="3.0" left="3.0" top="3.0" />
+                     </padding></Label>
+                  <Label fx:id="followingGenotype" prefHeight="60.0" prefWidth="120.0" text="n.s" GridPane.columnIndex="1">
+                     <GridPane.margin>
+                        <Insets />
+                     </GridPane.margin>
+                     <padding>
+                        <Insets left="5.0" />
+                     </padding></Label>
+                  <Label fx:id="followingActivatedGene" prefHeight="70.0" prefWidth="109.0" text="n.s" GridPane.columnIndex="1" GridPane.rowIndex="1">
+                     <GridPane.margin>
+                        <Insets />
+                     </GridPane.margin>
+                     <padding>
+                        <Insets left="5.0" />
+                     </padding></Label>
+                  <Label fx:id="followingEnergyLevel" prefHeight="60.0" prefWidth="131.0" text="n.s" GridPane.columnIndex="1" GridPane.rowIndex="2">
+                     <GridPane.margin>
+                        <Insets />
+                     </GridPane.margin>
+                     <padding>
+                        <Insets left="5.0" />
+                     </padding></Label>
+                  <Label fx:id="followingPlantsEaten" prefHeight="67.0" prefWidth="112.0" text="n.s" GridPane.columnIndex="1" GridPane.rowIndex="3">
+                     <GridPane.margin>
+                        <Insets />
+                     </GridPane.margin>
+                     <padding>
+                        <Insets left="5.0" />
+                     </padding></Label>
+                  <Label fx:id="followingChildrenCount" prefHeight="78.0" prefWidth="124.0" text="n.s" GridPane.columnIndex="1" GridPane.rowIndex="4">
+                     <GridPane.margin>
+                        <Insets />
+                     </GridPane.margin>
+                     <padding>
+                        <Insets left="5.0" />
+                     </padding></Label>
+                  <Label fx:id="followingDescendantCount" prefHeight="88.0" prefWidth="126.0" text="n.s" GridPane.columnIndex="1" GridPane.rowIndex="5">
+                     <GridPane.margin>
+                        <Insets />
+                     </GridPane.margin>
+                     <padding>
+                        <Insets left="5.0" />
+                     </padding></Label>
+                  <Label fx:id="followingDaysAlive" prefHeight="77.0" prefWidth="124.0" text="n.s" GridPane.columnIndex="1" GridPane.rowIndex="6">
+                     <GridPane.margin>
+                        <Insets />
+                     </GridPane.margin>
+                     <padding>
+                        <Insets left="5.0" />
+                     </padding></Label>
+                  <Label fx:id="followingDeathday" prefHeight="63.0" prefWidth="108.0" text="n.s" GridPane.columnIndex="1" GridPane.rowIndex="7">
+                     <GridPane.margin>
+                        <Insets />
+                     </GridPane.margin>
+                     <padding>
+                        <Insets left="5.0" />
+                     </padding></Label>
+               </children>
+            </GridPane>
+            <Label alignment="CENTER" prefHeight="29.0" prefWidth="210.0" text="Dominating genotype" textAlignment="CENTER">
+               <font>
+                  <Font name="System Bold" size="14.0" />
+               </font>
+            </Label>
+            <HBox alignment="CENTER">
+               <children>
+                  <Button fx:id="dominatingGenotype" alignment="CENTER" contentDisplay="CENTER" mnemonicParsing="false" onAction="#dominatingGenotype" prefHeight="23.0" prefWidth="57.0" text="Show" textAlignment="CENTER" />
+               </children>
+            </HBox>
+            <Label alignment="CENTER" layoutX="10.0" layoutY="273.0" prefHeight="29.0" prefWidth="210.0" text="Preffered plant fields" textAlignment="CENTER">
+               <font>
+                  <Font name="System Bold" size="14.0" />
+               </font>
+            </Label>
+            <HBox alignment="CENTER" layoutX="10.0" layoutY="303.0">
+               <children>
+                  <Button fx:id="preferredPlantFields" alignment="CENTER" contentDisplay="CENTER" mnemonicParsing="false" onAction="#preferredPlantFields" prefHeight="23.0" prefWidth="57.0" text="Show" textAlignment="CENTER" />
+               </children>
+            </HBox>
+         </children>
+      </VBox>
+   </right>            
 </BorderPane>

@@ -7,6 +7,8 @@ import agh.ics.oop.model.Vector2D;
 import agh.ics.oop.model.element.behaviour.BehaviourIndicator;
 import agh.ics.oop.model.element.gene.Gene;
 import agh.ics.oop.model.element.gene.ReproductionInformation;
+import agh.ics.oop.presenter.SimulationPresenter;
+import javafx.application.Platform;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 
@@ -54,6 +56,10 @@ public class Animal implements WorldElement {
 
     private final ImageView imageView = new ImageView(ANIMAL_IMAGES.get(new Random().nextInt(ANIMAL_IMAGES.size())));
 
+    private boolean isBeingFollowed = false;
+
+    private int plantsEaten = 0;
+
     public Animal(
         Vector2D position,
         List<Gene> genes,
@@ -81,6 +87,10 @@ public class Animal implements WorldElement {
         this.energyLevel = startEnergyLevel;
         this.orientation = MapDirection.random();
         this.geneIndex = new Random().nextInt(genes.size());
+
+        this.imageView.addEventHandler(javafx.scene.input.MouseEvent.MOUSE_CLICKED, event -> {
+            this.isBeingFollowed = !isBeingFollowed;
+        });
     }
 
     @Override
@@ -92,7 +102,7 @@ public class Animal implements WorldElement {
         return this.position.equals(position);
     }
 
-    private Gene getCurrentGene() {
+    public Gene getCurrentGene() {
         return this.genes.get(this.geneIndex);
     }
 
@@ -151,12 +161,17 @@ public class Animal implements WorldElement {
         return this.geneIndex;
     }
 
+    public int getPlantsEaten(){
+        return plantsEaten;
+    }
+  
     public List<Gene> getGenes() {
         return Collections.unmodifiableList(this.genes);
     }
 
     public void consumePlant() {
         this.energyLevel += this.energyParameters.plantEnergy();
+        this.plantsEaten+=1;
     }
 
     public ReproductionInformation reproduce() {
@@ -173,5 +188,13 @@ public class Animal implements WorldElement {
 
     public void setDeathDay(int deathDay) {
         this.deathDay = deathDay;
+    }
+
+    public boolean isBeingFollowed() {
+        return isBeingFollowed;
+    }
+
+    public void setBeingFollowed(boolean beingFollowed) {
+        this.isBeingFollowed = beingFollowed;
     }
 }

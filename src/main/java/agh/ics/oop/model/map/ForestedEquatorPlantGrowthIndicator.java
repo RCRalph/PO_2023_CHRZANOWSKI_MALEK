@@ -65,4 +65,9 @@ public class ForestedEquatorPlantGrowthIndicator implements PlantGrowthIndicator
 
         return Collections.unmodifiableCollection(result);
     }
+
+    @Override
+    public Collection<Vector2D> getDesirablePositions() {
+        return Collections.unmodifiableCollection(this.desirablePositions);
+    }
 }
