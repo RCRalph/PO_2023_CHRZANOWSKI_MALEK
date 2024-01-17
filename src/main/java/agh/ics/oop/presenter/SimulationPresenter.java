@@ -24,7 +24,7 @@ import java.io.IOException;
 import java.util.*;
 
 public class SimulationPresenter implements SimulationChangeListener {
-    public static final int CELL_SIZE = 75;
+    public static final int CELL_SIZE = 50;
 
     @FXML
     private Label mapMessage;
