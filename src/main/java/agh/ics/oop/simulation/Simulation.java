@@ -127,7 +127,7 @@ public class Simulation implements Runnable {
 
     private void simulationChanged(SimulationStatistics statistics) {
         for (SimulationChangeListener listener : this.listeners) {
-            listener.simulationChanged("Updated statistics", statistics);
+            listener.simulationChanged("Updating statistics", statistics);
         }
     }
 
@@ -140,24 +140,24 @@ public class Simulation implements Runnable {
         while (this.engine.getExecutionStatus() == SimulationExecutionStatus.RUNNING && this.worldMap.aliveAnimalCount() > 0) {
             switch (this.simulationAction) {
                 case REMOVE_DEAD_ANIMALS -> {
+                    this.simulationChanged("Removing dead animals");
                     this.worldMap.removeDeadAnimals(this.currentDay);
-                    this.simulationChanged("Removed dead animals");
                 }
                 case MOVE_ANIMALS -> {
+                    this.simulationChanged("Moving animals");
                     this.worldMap.moveAnimals();
-                    this.simulationChanged("Moved animals");
                 }
                 case CONSUME_PLANTS -> {
+                    this.simulationChanged("Animals consuming plants");
                     this.worldMap.consumePlants();
-                    this.simulationChanged("Animals consumed plants");
                 }
                 case REPRODUCE_ANIMALS -> {
+                    this.simulationChanged("Reproducing animals");
                     this.reproduceAnimals();
-                    this.simulationChanged("Reproduced animals");
                 }
                 case GROW_PLANTS -> {
+                    this.simulationChanged("Growing new plants");
                     this.worldMap.growPlants(this.parameters.dailyPlantGrowth());
-                    this.simulationChanged("Grew new plants");
                 }
                 case SLEEP -> {
                     this.currentDay++;

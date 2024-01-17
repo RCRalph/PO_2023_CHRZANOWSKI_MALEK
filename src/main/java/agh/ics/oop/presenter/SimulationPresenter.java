@@ -93,6 +93,13 @@ public class SimulationPresenter implements SimulationChangeListener {
         this.uuid = uuid;
     }
 
+    private double getCellSize(Boundary boundary) {
+        return Math.min(
+            (this.mapContent.getScene().getHeight() - 150) / (boundary.height() + 2),
+            (this.mapContent.getScene().getWidth() - 450) / (boundary.width() + 2)
+        );
+    }
+
     private void addToGridPane(GridPane gridPane, ImageView imageView, int column, int row) {
         GridPane.setHalignment(imageView, HPos.CENTER);
         gridPane.add(imageView, column, row);
@@ -104,16 +111,16 @@ public class SimulationPresenter implements SimulationChangeListener {
         gridPane.add(label, column, row);
     }
 
-    private void drawCoordinates(Boundary boundary) {
+    private void drawCoordinates(Boundary boundary, double cellSize) {
         this.addToGridPane(this.mapContent, "y\\x", 0, 0);
-        this.mapContent.getColumnConstraints().add(new ColumnConstraints(CELL_SIZE));
-        this.mapContent.getRowConstraints().add(new RowConstraints(CELL_SIZE));
+        this.mapContent.getColumnConstraints().add(new ColumnConstraints(cellSize));
+        this.mapContent.getRowConstraints().add(new RowConstraints(cellSize));
 
         int horizontalCoordinateCount = boundary.upperRightCorner().x() - boundary.lowerLeftCorner().x() + 1,
             verticalCoordinateCount = boundary.upperRightCorner().y() - boundary.lowerLeftCorner().y() + 1;
 
         for (int i = 0; i < horizontalCoordinateCount; i++) {
-            this.mapContent.getColumnConstraints().add(new ColumnConstraints(CELL_SIZE));
+            this.mapContent.getColumnConstraints().add(new ColumnConstraints(cellSize));
             this.addToGridPane(
                 this.mapContent,
                 Integer.toString(i + boundary.lowerLeftCorner().x()),
@@ -123,7 +130,7 @@ public class SimulationPresenter implements SimulationChangeListener {
         }
 
         for (int i = 0; i < verticalCoordinateCount; i++) {
-            this.mapContent.getRowConstraints().add(new RowConstraints(CELL_SIZE));
+            this.mapContent.getRowConstraints().add(new RowConstraints(cellSize));
             this.addToGridPane(
                 this.mapContent,
                 Integer.toString(boundary.upperRightCorner().y() - i),
@@ -139,7 +146,9 @@ public class SimulationPresenter implements SimulationChangeListener {
         this.mapContent.getRowConstraints().clear();
 
         Boundary boundary = map.getCurrentBounds();
-        this.drawCoordinates(boundary);
+        double cellSize = this.getCellSize(boundary);
+
+        this.drawCoordinates(boundary, cellSize);
 
         for (int r = boundary.upperRightCorner().y(); r >= boundary.lowerLeftCorner().y(); r--) {
             for (int c = boundary.lowerLeftCorner().x(); c <= boundary.upperRightCorner().x(); c++) {
@@ -147,6 +156,8 @@ public class SimulationPresenter implements SimulationChangeListener {
 
                 if (map.isOccupied(position)) {
                     for (WorldElement element : map.objectsAt(position)) {
+                        element.setImageViewSize(cellSize);
+
                         this.addToGridPane(
                             this.mapContent,
                             element.getImageView(),
