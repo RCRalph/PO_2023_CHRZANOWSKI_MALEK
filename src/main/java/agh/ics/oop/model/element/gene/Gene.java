@@ -32,4 +32,21 @@ public enum Gene {
 
         return result;
     }
+
+    @Override
+    public String toString() {
+        return Integer.toString(this.ordinal() + 1);
+    }
+
+    public static String listToString(List<Gene> genome) {
+        StringBuilder builder = new StringBuilder("(");
+
+        for (Gene gene : genome) {
+            builder.append(gene.toString());
+        }
+
+        builder.append(")");
+
+        return builder.toString();
+    }
 }
