@@ -151,6 +151,10 @@ public class Animal implements WorldElement {
         return this.geneIndex;
     }
 
+    public List<Gene> getGenes() {
+        return Collections.unmodifiableList(this.genes);
+    }
+
     public void consumePlant() {
         this.energyLevel += this.energyParameters.plantEnergy();
     }

@@ -5,5 +5,7 @@ import agh.ics.oop.model.map.WorldMap;
 public interface SimulationChangeListener {
     void simulationChanged(WorldMap worldMap, String message);
 
+    void simulationChanged(SimulationStatistics statistics, String message);
+
     void simulationChanged(String message);
 }

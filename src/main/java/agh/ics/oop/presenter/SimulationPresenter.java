@@ -2,11 +2,12 @@ package agh.ics.oop.presenter;
 
 import agh.ics.oop.model.Vector2D;
 import agh.ics.oop.model.element.WorldElement;
+import agh.ics.oop.model.element.gene.Gene;
 import agh.ics.oop.model.map.Boundary;
 import agh.ics.oop.model.map.WorldMap;
 import agh.ics.oop.simulation.Simulation;
 import agh.ics.oop.simulation.SimulationChangeListener;
-import agh.ics.oop.simulation.SimulationEngine;
+import agh.ics.oop.simulation.SimulationStatistics;
 import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.geometry.HPos;
@@ -16,6 +17,9 @@ import javafx.scene.image.ImageView;
 import javafx.scene.layout.ColumnConstraints;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.RowConstraints;
+
+import java.util.List;
+import java.util.Map;
 
 public class SimulationPresenter implements SimulationChangeListener {
     public static final int CELL_SIZE = 75;
@@ -35,38 +39,59 @@ public class SimulationPresenter implements SimulationChangeListener {
     @FXML
     private Button stopButton;
 
-    private SimulationEngine simulationEngine;
+    @FXML
+    private Label animalCountLabel;
+
+    @FXML
+    private Label plantCountLabel;
+
+    @FXML
+    private Label freeFieldLabel;
+
+    @FXML
+    private Label averageEnergyLabel;
+
+    @FXML
+    private Label averageLifespanLabel;
+
+    @FXML
+    private Label averageChildrenLabel;
+
+    @FXML
+    private GridPane popularGenomesGridPane;
+
+    private Simulation simulation;
 
     private boolean saveToCSV;
 
     public void setSimulationEngine(Simulation simulation) {
-        if (this.simulationEngine != null) {
-            this.simulationEngine.unsubscribe(this);
-            this.simulationEngine.stop();
+        if (this.simulation != null) {
+            this.simulation.unsubscribe(this);
+            this.simulation.getEngine().stop();
         }
 
-        this.simulationEngine = simulation.getEngine();
-        this.simulationEngine.subscribe(this);
-        this.simulationEngine.initialize();
+        this.simulation = simulation;
+        this.simulation.subscribe(this);
+        this.simulation.getEngine().initialize();
     }
 
     public void setSaveToCSV(boolean saveToCSV) {
         this.saveToCSV = saveToCSV;
     }
 
-    private void addToGridPane(ImageView imageView, int column, int row) {
+    private void addToGridPane(GridPane gridPane, ImageView imageView, int column, int row) {
         GridPane.setHalignment(imageView, HPos.CENTER);
-        this.mapContent.add(imageView, column, row);
+        gridPane.add(imageView, column, row);
     }
 
-    private void addToGridPane(String text, int column, int row) {
+    private void addToGridPane(GridPane gridPane, String text, int column, int row) {
         Label label = new Label(text);
         GridPane.setHalignment(label, HPos.CENTER);
-        this.mapContent.add(label, column, row);
+        gridPane.add(label, column, row);
     }
 
     private void drawCoordinates(Boundary boundary) {
-        this.addToGridPane("y\\x", 0, 0);
+        this.addToGridPane(this.mapContent, "y\\x", 0, 0);
         this.mapContent.getColumnConstraints().add(new ColumnConstraints(CELL_SIZE));
         this.mapContent.getRowConstraints().add(new RowConstraints(CELL_SIZE));
 
@@ -75,23 +100,29 @@ public class SimulationPresenter implements SimulationChangeListener {
 
         for (int i = 0; i < horizontalCoordinateCount; i++) {
             this.mapContent.getColumnConstraints().add(new ColumnConstraints(CELL_SIZE));
-            this.addToGridPane(Integer.toString(i + boundary.lowerLeftCorner().x()), i + 1, 0);
+            this.addToGridPane(
+                this.mapContent,
+                Integer.toString(i + boundary.lowerLeftCorner().x()),
+                i + 1,
+                0
+            );
         }
 
         for (int i = 0; i < verticalCoordinateCount; i++) {
             this.mapContent.getRowConstraints().add(new RowConstraints(CELL_SIZE));
-            this.addToGridPane(Integer.toString(boundary.upperRightCorner().y() - i), 0, i + 1);
+            this.addToGridPane(
+                this.mapContent,
+                Integer.toString(boundary.upperRightCorner().y() - i),
+                0,
+                i + 1
+            );
         }
     }
 
-    private void clearGrid() {
+    private void drawMap(WorldMap map) {
         this.mapContent.getChildren().retainAll(this.mapContent.getChildren().get(0));
         this.mapContent.getColumnConstraints().clear();
         this.mapContent.getRowConstraints().clear();
-    }
-
-    private void drawMap(WorldMap map) {
-        this.clearGrid();
 
         Boundary boundary = map.getCurrentBounds();
         this.drawCoordinates(boundary);
@@ -103,6 +134,7 @@ public class SimulationPresenter implements SimulationChangeListener {
                 if (map.isOccupied(position)) {
                     for (WorldElement element : map.objectsAt(position)) {
                         this.addToGridPane(
+                            this.mapContent,
                             element.getImageView(),
                             c + 1 - boundary.lowerLeftCorner().x(),
                             boundary.upperRightCorner().y() - r + 1
@@ -113,10 +145,50 @@ public class SimulationPresenter implements SimulationChangeListener {
         }
     }
 
+    private void updateStatistics(SimulationStatistics statistics) {
+        this.animalCountLabel.setText(Integer.toString(statistics.animalCount()));
+        this.plantCountLabel.setText(Integer.toString(statistics.plantCount()));
+        this.freeFieldLabel.setText(Long.toString(statistics.freeFieldCount()));
+        this.averageEnergyLabel.setText(Double.toString(statistics.averageEnergyLevel()));
+        this.averageLifespanLabel.setText(Double.toString(statistics.averageLifespan()));
+        this.averageChildrenLabel.setText(Double.toString(statistics.averageChildren()));
+
+        this.popularGenomesGridPane.getChildren().clear();
+
+        List<Map.Entry<List<Gene>, Integer>> orderedGenomes = statistics.genomePopularity()
+            .entrySet()
+            .stream()
+            .sorted((item1, item2) -> -Integer.compare(item1.getValue(), item2.getValue()))
+            .limit(20)
+            .toList();
+
+        for (int row = 0; row < orderedGenomes.size(); row++) {
+            this.addToGridPane(
+                this.popularGenomesGridPane,
+                Gene.listToString(orderedGenomes.get(row).getKey()),
+                0,
+                row
+            );
+
+            this.addToGridPane(
+                this.popularGenomesGridPane,
+                orderedGenomes.get(row).getValue().toString(),
+                1,
+                row
+            );
+        }
+    }
+
     @Override
     public void simulationChanged(WorldMap map, String message) {
         this.simulationChanged(message);
         Platform.runLater(() -> this.drawMap(map));
+    }
+
+    @Override
+    public void simulationChanged(SimulationStatistics statistics, String message) {
+        this.simulationChanged(message);
+        Platform.runLater(() -> this.updateStatistics(statistics));
     }
 
     @Override
@@ -130,7 +202,7 @@ public class SimulationPresenter implements SimulationChangeListener {
         this.pauseButton.setDisable(false);
         this.stopButton.setDisable(false);
 
-        this.simulationEngine.start();
+        this.simulation.getEngine().start();
     }
 
     @FXML
@@ -140,7 +212,7 @@ public class SimulationPresenter implements SimulationChangeListener {
         this.stopButton.setDisable(false);
 
         try {
-            this.simulationEngine.pause();
+            this.simulation.getEngine().pause();
         } catch (InterruptedException ignored) {}
     }
 
@@ -150,6 +222,6 @@ public class SimulationPresenter implements SimulationChangeListener {
         this.pauseButton.setDisable(true);
         this.stopButton.setDisable(true);
 
-        this.simulationEngine.stop();
+        this.simulation.getEngine().stop();
     }
 }

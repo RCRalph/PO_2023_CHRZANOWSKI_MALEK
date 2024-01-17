@@ -82,11 +82,9 @@ public class SimulationEngine {
 
     public void subscribe(SimulationChangeListener listener) {
         this.listeners.add(listener);
-        this.simulation.subscribe(listener);
     }
 
     public void unsubscribe(SimulationChangeListener listener) {
         this.listeners.remove(listener);
-        this.simulation.unsubscribe(listener);
     }
 }
