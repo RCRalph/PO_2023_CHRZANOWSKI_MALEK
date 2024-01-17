@@ -70,10 +70,8 @@ public class Simulation implements Runnable {
 
     private void reproduceAnimals() {
         for (Vector2D position : this.worldMap.getAnimalPositions()) {
-            List<Animal> animals = this.worldMap.objectsAt(position)
+            List<Animal> animals = this.worldMap.animalsAt(position)
                 .stream()
-                .filter(item -> item instanceof Animal)
-                .map(item -> (Animal) item)
                 .filter(animal -> animal.getEnergyLevel() >= this.parameters.healthyAnimalEnergy())
                 .sorted(new DarwinistAnimalComparator())
                 .limit(2)
