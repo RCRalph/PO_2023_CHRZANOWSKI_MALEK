@@ -35,6 +35,12 @@ public class SimulationWindow extends Application {
         presenter.setSimulationEngine(this.simulation);
         presenter.setSaveToCSV(this.saveToCSV);
 
+        stage.setOnCloseRequest(event -> {
+            if (this.simulation.getEngine().getExecutionStatus().isStoppable()) {
+                this.simulation.getEngine().stop();
+            }
+        });
+
         stage.show();
     }
 
