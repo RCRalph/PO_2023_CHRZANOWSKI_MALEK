@@ -9,4 +9,6 @@ public interface WorldElement {
     Vector2D getPosition();
 
     ImageView getImageView();
+
+    void setImageViewSize(double cellSize);
 }

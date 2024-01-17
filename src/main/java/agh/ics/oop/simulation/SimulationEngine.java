@@ -62,9 +62,11 @@ public class SimulationEngine {
         if (this.simulationExecutionStatus.isStoppable()) {
             this.simulationExecutionStatus = SimulationExecutionStatus.STOPPED;
 
-            try {
-                this.simulationThread.join();
-            } catch (InterruptedException ignored) {}
+            if (this.simulationThread != null) {
+                try {
+                    this.simulationThread.join();
+                } catch (InterruptedException ignored) {}
+            }
 
             this.simulationStatusChanged("Simulation stopped");
         } else {
@@ -82,11 +84,9 @@ public class SimulationEngine {
 
     public void subscribe(SimulationChangeListener listener) {
         this.listeners.add(listener);
-        this.simulation.subscribe(listener);
     }
 
     public void unsubscribe(SimulationChangeListener listener) {
         this.listeners.remove(listener);
-        this.simulation.unsubscribe(listener);
     }
 }

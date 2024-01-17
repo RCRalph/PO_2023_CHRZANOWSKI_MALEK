@@ -80,7 +80,9 @@ public class SimulationConfigurator {
         }
     }
 
-    private WorldMap getWorldMap(PlantGrowthIndicator plantGrowthIndicator) throws InvalidSimulationConfigurationException {
+    private WorldMap getWorldMap(
+        PlantGrowthIndicator plantGrowthIndicator
+    ) throws InvalidSimulationConfigurationException {
         Class<? extends WorldMap> worldMap = WORLD_MAPS.get(parameters.worldMapVariant());
 
         try {
@@ -89,9 +91,15 @@ public class SimulationConfigurator {
                     .getDeclaredConstructor(Boundary.class, PlantGrowthIndicator.class)
                     .newInstance(this.boundary, plantGrowthIndicator);
             } else if (worldMap == UndergroundTunnelsWorldMap.class) {
+                if (this.parameters.tunnelCount().isEmpty()) {
+                    throw new InvalidSimulationConfigurationException(
+                        "Tunnel count should be specified when using Underground Tunnels"
+                    );
+                }
+
                 return worldMap
                     .getDeclaredConstructor(Boundary.class, int.class, PlantGrowthIndicator.class)
-                    .newInstance(this.boundary, parameters.tunnelCount(), plantGrowthIndicator);
+                    .newInstance(this.boundary, this.parameters.tunnelCount().get(), plantGrowthIndicator);
             } else {
                 throw new InvalidSimulationConfigurationException("World map variant should point to a valid class");
             }

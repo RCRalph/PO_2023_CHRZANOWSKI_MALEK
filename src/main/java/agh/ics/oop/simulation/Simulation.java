@@ -9,11 +9,12 @@ import agh.ics.oop.model.element.gene.ChildGenesIndicator;
 import agh.ics.oop.model.element.gene.Gene;
 import agh.ics.oop.model.map.WorldMap;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
 
 public class Simulation implements Runnable {
+    private static final int ACTION_TIMEOUT = 100;
+
     private final SimulationParameters parameters;
 
     private final List<SimulationChangeListener> listeners = new ArrayList<>();
@@ -25,6 +26,8 @@ public class Simulation implements Runnable {
     private final WorldMap worldMap;
 
     private final List<Animal> animals = new ArrayList<>();
+
+    private final Map<Animal, List<Animal>> animalChildren = new IdentityHashMap<>();
 
     private final EnergyParameters energyParameters;
 
@@ -51,6 +54,7 @@ public class Simulation implements Runnable {
 
     private void placeAnimal(Animal animal) {
         this.animals.add(animal);
+        this.animalChildren.put(animal, new ArrayList<>());
         this.worldMap.placeAnimal(animal);
     }
 
@@ -70,10 +74,8 @@ public class Simulation implements Runnable {
 
     private void reproduceAnimals() {
         for (Vector2D position : this.worldMap.getAnimalPositions()) {
-            List<Animal> animals = this.worldMap.objectsAt(position)
+            List<Animal> animals = this.worldMap.animalsAt(position)
                 .stream()
-                .filter(item -> item instanceof Animal)
-                .map(item -> (Animal) item)
                 .filter(animal -> animal.getEnergyLevel() >= this.parameters.healthyAnimalEnergy())
                 .sorted(new DarwinistAnimalComparator())
                 .limit(2)
@@ -93,6 +95,8 @@ public class Simulation implements Runnable {
                 );
 
                 this.placeAnimal(child);
+                this.animalChildren.get(animals.get(0)).add(child);
+                this.animalChildren.get(animals.get(1)).add(child);
             }
         }
     }
@@ -101,26 +105,29 @@ public class Simulation implements Runnable {
         this.generateAnimals();
         this.worldMap.growPlants(this.parameters.startPlantCount());
         this.currentDay = 1;
+        this.simulationChanged(this.getSimulationStatistics());
         this.simulationChanged("Initialized simulation");
     }
 
     public void subscribe(SimulationChangeListener listener) {
         this.listeners.add(listener);
+        this.engine.subscribe(listener);
     }
 
     public void unsubscribe(SimulationChangeListener listener) {
+        this.engine.unsubscribe(listener);
         this.listeners.remove(listener);
     }
 
     private void simulationChanged(String message) {
         for (SimulationChangeListener listener : this.listeners) {
-            listener.simulationChanged(this.worldMap, message);
+            listener.simulationChanged(message, this.worldMap);
         }
     }
 
-    private void simulationChanged(String message, int day) {
+    private void simulationChanged(SimulationStatistics statistics) {
         for (SimulationChangeListener listener : this.listeners) {
-            listener.simulationChanged(this.worldMap, String.format("Day %d: %s", day, message));
+            listener.simulationChanged("Updating statistics", statistics);
         }
     }
 
@@ -133,35 +140,35 @@ public class Simulation implements Runnable {
         while (this.engine.getExecutionStatus() == SimulationExecutionStatus.RUNNING && this.worldMap.aliveAnimalCount() > 0) {
             switch (this.simulationAction) {
                 case REMOVE_DEAD_ANIMALS -> {
+                    this.simulationChanged("Removing dead animals");
                     this.worldMap.removeDeadAnimals(this.currentDay);
-                    this.simulationChanged("Removed dead animals", this.currentDay);
                 }
                 case MOVE_ANIMALS -> {
+                    this.simulationChanged("Moving animals");
                     this.worldMap.moveAnimals();
-                    this.simulationChanged("Moved animals", this.currentDay);
                 }
                 case CONSUME_PLANTS -> {
+                    this.simulationChanged("Animals consuming plants");
                     this.worldMap.consumePlants();
-                    this.simulationChanged("Animals consumed plants", this.currentDay);
                 }
                 case REPRODUCE_ANIMALS -> {
+                    this.simulationChanged("Reproducing animals");
                     this.reproduceAnimals();
-                    this.simulationChanged("Reproduced animals", this.currentDay);
                 }
                 case GROW_PLANTS -> {
+                    this.simulationChanged("Growing new plants");
                     this.worldMap.growPlants(this.parameters.dailyPlantGrowth());
-                    this.simulationChanged("Grew new plants", this.currentDay);
                 }
                 case SLEEP -> {
-                    this.simulationChanged("Progressing to the next day...");
                     this.currentDay++;
+                    this.simulationChanged(this.getSimulationStatistics());
                 }
             }
 
             this.simulationAction = this.simulationAction.next();
 
             try {
-                TimeUnit.MILLISECONDS.sleep(100);
+                TimeUnit.MILLISECONDS.sleep(ACTION_TIMEOUT);
             } catch (InterruptedException exception) {
                 this.engine.stop();
                 this.simulationChanged("Simulation interrupted");
@@ -172,5 +179,69 @@ public class Simulation implements Runnable {
             this.engine.stop();
             this.simulationChanged("All animals are dead");
         }
+    }
+
+    private int getAnimalChildrenCount(Map<Animal, Integer> animalChildrenCount, Animal animal) {
+        animalChildrenCount.putIfAbsent(animal,
+            this.animalChildren.get(animal).size() +
+                this.animalChildren.get(animal)
+                    .stream()
+                    .mapToInt(item -> this.getAnimalChildrenCount(animalChildrenCount, item))
+                    .sum()
+        );
+
+        return animalChildrenCount.get(animal);
+    }
+
+    private Map<List<Gene>, Integer> getGenomePopularity() {
+        List<List<Gene>> genomes = this.animals
+            .stream()
+            .filter(item -> item.getEnergyLevel() > 0)
+            .map(Animal::getGenes)
+            .toList();
+
+        Map<List<Gene>, Integer> genomePopularity = new HashMap<>();
+        for (List<Gene> genome : genomes) {
+            genomePopularity.putIfAbsent(genome, 0);
+            genomePopularity.put(genome, genomePopularity.get(genome) + 1);
+        }
+
+        return Collections.unmodifiableMap(genomePopularity);
+    }
+
+    public SimulationStatistics getSimulationStatistics() {
+        double averageEnergyLevel = this.worldMap.getAnimals()
+            .stream()
+            .mapToDouble(Animal::getEnergyLevel)
+            .average()
+            .orElse(0);
+
+        double averageLifeSpan = this.animals
+            .stream()
+            .filter(item -> item.getEnergyLevel() <= 0)
+            .mapToDouble(
+                item -> (item.getDeathDay() == -1 ? this.currentDay : item.getDeathDay()) - item.getBirthday() + 1
+            )
+            .average()
+            .orElse(0);
+
+        Map<Animal, Integer> animalChildrenCount = new HashMap<>();
+
+        double averageChildren = this.worldMap.getAnimals()
+            .stream()
+            .mapToInt(item -> this.getAnimalChildrenCount(animalChildrenCount, item))
+            .average()
+            .orElse(0);
+
+        return new SimulationStatistics(
+            this.currentDay,
+            this.worldMap.aliveAnimalCount(),
+            this.worldMap.plantCount(),
+            this.worldMap.freeFieldCount(),
+            averageEnergyLevel,
+            averageLifeSpan,
+            averageChildren,
+            this.getGenomePopularity()
+        );
     }
 }

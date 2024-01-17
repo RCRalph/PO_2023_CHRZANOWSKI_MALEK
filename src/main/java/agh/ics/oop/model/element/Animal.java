@@ -7,7 +7,6 @@ import agh.ics.oop.model.Vector2D;
 import agh.ics.oop.model.element.behaviour.BehaviourIndicator;
 import agh.ics.oop.model.element.gene.Gene;
 import agh.ics.oop.model.element.gene.ReproductionInformation;
-import agh.ics.oop.presenter.SimulationPresenter;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 
@@ -32,8 +31,6 @@ public class Animal implements WorldElement {
         new Image("animals/laciatired.png"),
         new Image("animals/laciawtf.png")
     );
-
-    private static final int IMAGE_SIZE = SimulationPresenter.CELL_SIZE * 4 / 5;
 
     private final List<Gene> genes;
 
@@ -84,9 +81,6 @@ public class Animal implements WorldElement {
         this.energyLevel = startEnergyLevel;
         this.orientation = MapDirection.random();
         this.geneIndex = new Random().nextInt(genes.size());
-
-        this.imageView.setFitWidth(IMAGE_SIZE);
-        this.imageView.setFitHeight(IMAGE_SIZE);
     }
 
     @Override
@@ -123,6 +117,12 @@ public class Animal implements WorldElement {
         return this.imageView;
     }
 
+    @Override
+    public void setImageViewSize(double cellSize) {
+        this.imageView.setFitWidth(cellSize * 0.8);
+        this.imageView.setFitHeight(cellSize * 0.8);
+    }
+
     public MapDirection getOrientation() {
         return this.orientation;
     }
@@ -149,6 +149,10 @@ public class Animal implements WorldElement {
 
     public int getGeneIndex() {
         return this.geneIndex;
+    }
+
+    public List<Gene> getGenes() {
+        return Collections.unmodifiableList(this.genes);
     }
 
     public void consumePlant() {

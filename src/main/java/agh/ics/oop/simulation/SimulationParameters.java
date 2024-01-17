@@ -12,7 +12,7 @@ public record SimulationParameters(
     int mapWidth,
     int mapHeight,
     String worldMapVariant,
-    int tunnelCount,
+    Optional<Integer> tunnelCount,
 
     int geneCount,
     int minimumMutationCount,
@@ -50,10 +50,11 @@ public record SimulationParameters(
             return Optional.of(
                 "Map height should be greater than 0"
             );
-        } else if (this.tunnelCount() * 2 > (this.mapWidth + 1) * (this.mapHeight + 1)) {
-            return Optional.of(
-                "Tunnel entrances count should not exceed total position count of the given map"
-            );
+        } else if (
+            this.tunnelCount.isPresent() &&
+            this.tunnelCount.get() * 2 > (this.mapWidth + 1) * (this.mapHeight + 1)
+        ) {
+            return Optional.of("Tunnel entrances count should not exceed total position count of the given map");
         } else if (!SimulationConfigurator.WORLD_MAPS.containsKey(this.worldMapVariant)) {
             return Optional.of("World map variant should point to a valid class");
         }
@@ -133,7 +134,6 @@ public record SimulationParameters(
         result.addProperty("map-width", this.mapWidth());
         result.addProperty("map-height", this.mapHeight());
         result.addProperty("world-map-variant", this.worldMapVariant());
-        result.addProperty("tunnel-count", this.tunnelCount());
         result.addProperty("gene-count", this.geneCount());
         result.addProperty("min-mutation-count", this.minimumMutationCount());
         result.addProperty("max-mutation-count", this.maximumMutationCount());
@@ -149,6 +149,8 @@ public record SimulationParameters(
         result.addProperty("reproduction-energy", this.reproductionEnergy());
         result.addProperty("animal-behaviour-indicator-variant", this.animalBehaviourIndicatorVariant());
 
+        this.tunnelCount.ifPresent(count -> result.addProperty("tunnel-count", count));
+
         return result;
     }
 
@@ -158,7 +160,9 @@ public record SimulationParameters(
             jsonObject.get("map-width").getAsInt(),
             jsonObject.get("map-height").getAsInt(),
             jsonObject.get("world-map-variant").getAsString(),
-            jsonObject.get("tunnel-count").getAsInt(),
+            Optional.ofNullable(
+                jsonObject.has("tunnel-count") ? jsonObject.get("tunnel-count").getAsInt() : null
+            ),
             jsonObject.get("gene-count").getAsInt(),
             jsonObject.get("min-mutation-count").getAsInt(),
             jsonObject.get("max-mutation-count").getAsInt(),

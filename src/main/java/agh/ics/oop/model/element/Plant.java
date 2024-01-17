@@ -33,4 +33,10 @@ public class Plant implements WorldElement {
     public ImageView getImageView() {
         return imageView;
     }
+
+    @Override
+    public void setImageViewSize(double cellSize) {
+        this.imageView.setFitWidth(cellSize);
+        this.imageView.setFitHeight(cellSize);
+    }
 }
