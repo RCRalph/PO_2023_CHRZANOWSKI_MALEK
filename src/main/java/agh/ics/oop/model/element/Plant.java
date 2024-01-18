@@ -14,9 +14,6 @@ public class Plant implements WorldElement {
 
     public Plant(Vector2D position) {
         this.position = position;
-
-        this.imageView.setFitWidth(SimulationPresenter.CELL_SIZE);
-        this.imageView.setFitHeight(SimulationPresenter.CELL_SIZE);
     }
 
     @Override

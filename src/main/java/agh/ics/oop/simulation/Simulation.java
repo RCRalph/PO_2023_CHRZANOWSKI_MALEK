@@ -9,6 +9,7 @@ import agh.ics.oop.model.element.gene.ChildGenesIndicator;
 import agh.ics.oop.model.element.gene.Gene;
 import agh.ics.oop.model.map.Boundary;
 import agh.ics.oop.model.map.WorldMap;
+import javafx.beans.binding.ObjectExpression;
 
 import java.util.*;
 import java.util.concurrent.TimeUnit;
@@ -136,7 +137,19 @@ public class Simulation implements Runnable {
   
     private void simulationChanged(Animal followedAnimal){
         for (SimulationChangeListener listener: this.listeners){
-            listener.simulationChanged(followedAnimal);
+            listener.simulationChanged(worldMap, followedAnimal);
+        }
+    }
+
+    private void simulationChanged(int descendantCount){
+        for (SimulationChangeListener listener: this.listeners){
+            listener.simulationChanged(descendantCount);
+        }
+    }
+
+    private void simulationChanged(WorldMap map, List<Animal> animals){
+        for (SimulationChangeListener listener: this.listeners){
+            listener.simulationChanged(map, Collections.unmodifiableCollection(animals));
         }
     }
 
@@ -147,6 +160,7 @@ public class Simulation implements Runnable {
     private void setFollowing(){
         for(Animal animal: this.animals){
             if(animal.isBeingFollowed()){
+                this.followedAnimal = animal;
                 simulationChanged(animal);
             }
             animal.setBeingFollowed(false);
@@ -181,6 +195,12 @@ public class Simulation implements Runnable {
                 case SLEEP -> {
                     this.currentDay++;
                     this.simulationChanged(this.getSimulationStatistics());
+                    if(!Objects.isNull(this.followedAnimal)) {
+                        this.simulationChanged(this.getAnimalChildrenCount(
+                                new HashMap<Animal, Integer>(), this.followedAnimal)
+                        );
+                    }
+                    this.simulationChanged(this.worldMap, this.animals);
                 }
             }
 

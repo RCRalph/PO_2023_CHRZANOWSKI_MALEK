@@ -19,8 +19,6 @@ public class Tunnel implements WorldElement {
         this.exit = exit;
 
         this.imageView = new ImageView(IMAGE);
-        imageView.setFitWidth(SimulationPresenter.CELL_SIZE);
-        imageView.setFitHeight(SimulationPresenter.CELL_SIZE);
     }
 
     @Override
