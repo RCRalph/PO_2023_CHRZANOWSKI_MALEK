@@ -7,24 +7,3 @@
     -fx-opacity: 1;
 }
 
-.highlightPlants{
-    -fx-border-color: #00008B;
-    -fx-border-width: 100px;
-    -fx-fit-to-width: 60;
-    -fx-fit-to-height: 60;
-}
-
-.highlightFollowed {
-    -fx-border-color: #FF0000;
-    -fx-border-width: 100px;
-    -fx-fit-to-width: 40;
-    -fx-fit-to-height: 40;
-}
-
-.coordinateLabel {
-}
-
-.tileBorder{
-    -fx-border-color: #000000;
-}
-
