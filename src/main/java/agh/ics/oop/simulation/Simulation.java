@@ -109,7 +109,7 @@ public class Simulation implements Runnable {
         this.generateAnimals();
         this.worldMap.growPlants(this.parameters.startPlantCount());
         this.currentDay = 1;
-        this.simulationChanged(this.getSimulationStatistics());
+        this.simulationChanged(this.getSimulationStatistics(), 0);
         this.simulationChanged("Initialized simulation");
     }
 
@@ -129,21 +129,9 @@ public class Simulation implements Runnable {
         }
     }
 
-    private void simulationChanged(SimulationStatistics statistics) {
+    private void simulationChanged(SimulationStatistics statistics, int followedAnimalDescendantCount) {
         for (SimulationChangeListener listener : this.listeners) {
-          listener.simulationChanged("Updating statistics", statistics);
-        }
-    }
-  
-    private void simulationChanged(Animal followedAnimal) {
-        for (SimulationChangeListener listener : this.listeners) {
-            listener.simulationChanged(worldMap, followedAnimal);
-        }
-    }
-
-    private void simulationChanged(int descendantCount) {
-        for (SimulationChangeListener listener : this.listeners) {
-            listener.simulationChanged(descendantCount);
+            listener.simulationChanged("Updating statistics", statistics, followedAnimalDescendantCount);
         }
     }
 
@@ -157,20 +145,9 @@ public class Simulation implements Runnable {
         return this.engine;
     }
 
-    private void setFollowing(){
-        for (Animal animal: this.animals) {
-            if (animal.isBeingFollowed()) {
-                this.followedAnimal = animal;
-                simulationChanged(animal);
-            }
-            animal.setBeingFollowed(false);
-        }
-    }
-
     @Override
     public void run() {
         while (this.engine.getExecutionStatus() == SimulationExecutionStatus.RUNNING && this.worldMap.aliveAnimalCount() > 0) {
-            setFollowing();
             switch (this.simulationAction) {
                 case REMOVE_DEAD_ANIMALS -> {
                     this.simulationChanged("Removing dead animals");
@@ -195,12 +172,12 @@ public class Simulation implements Runnable {
                 }
                 case SLEEP -> {
                     this.currentDay++;
-                    this.simulationChanged(this.getSimulationStatistics());
-                    if(!Objects.isNull(this.followedAnimal)) {
-                        this.simulationChanged(this.getAnimalChildrenCount(
-                                new HashMap<Animal, Integer>(), this.followedAnimal)
-                        );
-                    }
+                    this.simulationChanged(
+                        this.getSimulationStatistics(),
+                        this.getAnimalChildrenCount(
+                            new HashMap<>(), this.followedAnimal
+                        )
+                    );
                 }
             }
 
@@ -221,6 +198,8 @@ public class Simulation implements Runnable {
     }
 
     private int getAnimalChildrenCount(Map<Animal, Integer> animalChildrenCount, Animal animal) {
+        if (animal == null) return 0;
+
         animalChildrenCount.putIfAbsent(animal,
             this.animalChildren.get(animal).size() +
                 this.animalChildren.get(animal)

@@ -142,9 +142,9 @@
                      </Label>
                   <Label alignment="CENTER" prefWidth="225.0" styleClass="large-text" text="Animal following" textAlignment="CENTER" GridPane.columnSpan="2">
                   </Label>
-                  <Button fx:id="dominatingGenomeButton" alignment="CENTER" contentDisplay="CENTER" mnemonicParsing="false" onAction="#switchDominatingGenomeVisibility" prefHeight="24.0" prefWidth="226.0" text="Show Dominating Genome" textAlignment="CENTER" GridPane.columnSpan="2" GridPane.rowIndex="9">
+                  <Button fx:id="dominatingGenomeButton" alignment="CENTER" contentDisplay="CENTER" mnemonicParsing="false" onAction="#toggleDominatingGenomeVisibility" prefHeight="24.0" prefWidth="226.0" text="Show Dominating Genome" textAlignment="CENTER" GridPane.columnSpan="2" GridPane.rowIndex="9">
                   </Button>
-                  <Button fx:id="desirablePlantFieldsButton" alignment="CENTER" contentDisplay="CENTER" mnemonicParsing="false" onAction="#switchDesirablePlantFieldsVisibility" prefHeight="24.0" prefWidth="227.0" text="Show Desirable Plant Fields" textAlignment="CENTER" GridPane.columnSpan="2" GridPane.rowIndex="10">
+                  <Button fx:id="desirablePlantFieldsButton" alignment="CENTER" contentDisplay="CENTER" mnemonicParsing="false" onAction="#toggleDesirablePlantFieldsVisibility" prefHeight="24.0" prefWidth="227.0" text="Show Desirable Plant Fields" textAlignment="CENTER" GridPane.columnSpan="2" GridPane.rowIndex="10">
                      </Button>
                </children>
                <columnConstraints>

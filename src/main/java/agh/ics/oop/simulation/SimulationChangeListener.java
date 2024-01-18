@@ -10,13 +10,9 @@ import java.util.List;
 public interface SimulationChangeListener {
     void simulationChanged(String message, WorldMap worldMap);
 
-    void simulationChanged(String message, SimulationStatistics statistics);
+    void simulationChanged(String message, SimulationStatistics statistics, int animalDescendantCount);
 
     void simulationChanged(String message);
-
-    void simulationChanged(WorldMap map, Animal followedAnimal);
-
-    void simulationChanged(int descendantCount);
 
     void simulationChanged(WorldMap map, Collection<Animal> animals);
 

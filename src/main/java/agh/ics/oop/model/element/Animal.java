@@ -56,8 +56,6 @@ public class Animal implements WorldElement {
 
     private final ImageView imageView = new ImageView(ANIMAL_IMAGES.get(new Random().nextInt(ANIMAL_IMAGES.size())));
 
-    private boolean isBeingFollowed = false;
-
     private int plantsEaten = 0;
 
     public Animal(
@@ -87,10 +85,6 @@ public class Animal implements WorldElement {
         this.energyLevel = startEnergyLevel;
         this.orientation = MapDirection.random();
         this.geneIndex = new Random().nextInt(genes.size());
-
-        this.imageView.addEventHandler(javafx.scene.input.MouseEvent.MOUSE_CLICKED, event -> {
-            this.isBeingFollowed = !isBeingFollowed;
-        });
     }
 
     @Override
@@ -188,13 +182,5 @@ public class Animal implements WorldElement {
 
     public void setDeathDay(int deathDay) {
         this.deathDay = deathDay;
-    }
-
-    public boolean isBeingFollowed() {
-        return this.isBeingFollowed;
-    }
-
-    public void setBeingFollowed(boolean beingFollowed) {
-        this.isBeingFollowed = beingFollowed;
     }
 }

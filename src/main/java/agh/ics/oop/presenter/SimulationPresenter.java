@@ -232,6 +232,10 @@ public class SimulationPresenter implements SimulationChangeListener, Initializa
                     for (WorldElement element : map.objectsAt(position)) {
                         element.setImageViewSize(cellSize * 0.95);
 
+                        if (element instanceof Animal animal) {
+                            animal.getImageView().setOnMouseClicked(event -> this.followedAnimal = animal);
+                        }
+
                         pane.getChildren().add(element.getImageView());
                         pane.setAlignment(Pos.CENTER);
                         GridPane.setHalignment(element.getImageView(),HPos.CENTER);
@@ -287,25 +291,17 @@ public class SimulationPresenter implements SimulationChangeListener, Initializa
     }
 
     @Override
-    public void simulationChanged(String message, SimulationStatistics statistics) {
+    public void simulationChanged(String message, SimulationStatistics statistics, int animalDescendantCount) {
         this.simulationChanged(message);
-        Platform.runLater(() -> this.updateStatistics(statistics));
+        Platform.runLater(() -> {
+            this.updateStatistics(statistics);
+            this.setFollowedStatistics(animalDescendantCount);
+        });
     }
 
     @Override
     public void simulationChanged(String message) {
         Platform.runLater(() -> this.mapMessage.setText(message));
-    }
-
-    @Override
-    public void simulationChanged(int descendantCount) {
-        Platform.runLater(() -> this.setFollowedStatistics(descendantCount));
-    }
-
-    @Override
-    public void simulationChanged(WorldMap map, Animal followedAnimal) {
-        this.followedAnimal = followedAnimal;
-        Platform.runLater(() -> this.drawMap(map));
     }
 
     @Override
@@ -424,7 +420,7 @@ public class SimulationPresenter implements SimulationChangeListener, Initializa
     }
 
     @FXML
-    private void switchDesirablePlantFieldsVisibility() {
+    private void toggleDesirablePlantFieldsVisibility() {
         this.seeDesirablePositions = !seeDesirablePositions;
         this.desirablePlantFieldsButton.setText(
             seeDesirablePositions ?
@@ -436,7 +432,7 @@ public class SimulationPresenter implements SimulationChangeListener, Initializa
     }
 
     @FXML
-    private void switchDominatingGenomeVisibility() {
+    private void toggleDominatingGenomeVisibility() {
         this.seeDominatingGenome = !seeDominatingGenome;
         this.dominatingGenomeButton.setText(
             seeDominatingGenome ?
@@ -445,5 +441,10 @@ public class SimulationPresenter implements SimulationChangeListener, Initializa
         );
 
         this.drawMap(this.lastDrawnMap);
+    }
+
+    @Override
+    public void initialize(URL url, ResourceBundle resourceBundle) {
+        this.mapContent.setOnMouseClicked(event -> this.drawMap(this.lastDrawnMap));
     }
 }
