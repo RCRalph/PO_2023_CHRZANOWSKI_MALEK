@@ -37,8 +37,6 @@ public class Simulation implements Runnable {
 
     private int currentDay;
 
-    private Animal followedAnimal;
-
     public Simulation(
         SimulationParameters parameters,
         WorldMap worldMap,
@@ -133,12 +131,6 @@ public class Simulation implements Runnable {
         }
     }
 
-    private void simulationChanged(WorldMap map, List<Animal> animals) {
-        for (SimulationChangeListener listener : this.listeners){
-            listener.simulationChanged(map, Collections.unmodifiableCollection(animals));
-        }
-    }
-
     public SimulationEngine getEngine() {
         return this.engine;
     }
@@ -153,7 +145,6 @@ public class Simulation implements Runnable {
                 }
                 case MOVE_ANIMALS -> {
                     this.simulationChanged("Moving animals");
-                    this.simulationChanged(this.worldMap, this.animals);
                     this.worldMap.moveAnimals();
                 }
                 case CONSUME_PLANTS -> {

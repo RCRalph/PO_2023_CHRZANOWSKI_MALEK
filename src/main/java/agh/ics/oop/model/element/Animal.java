@@ -125,10 +125,6 @@ public class Animal implements WorldElement {
         this.imageView.setFitHeight(cellSize * 0.8);
     }
 
-    public MapDirection getOrientation() {
-        return this.orientation;
-    }
-
     public Pose getPose() {
         return new Pose(this.position, this.orientation);
     }

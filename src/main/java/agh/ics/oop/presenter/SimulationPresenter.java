@@ -8,6 +8,7 @@ import agh.ics.oop.model.map.Boundary;
 import agh.ics.oop.model.map.WorldMap;
 import agh.ics.oop.simulation.Simulation;
 import agh.ics.oop.simulation.SimulationChangeListener;
+import agh.ics.oop.simulation.SimulationExecutionStatus;
 import agh.ics.oop.simulation.SimulationStatistics;
 import com.opencsv.CSVWriter;
 import javafx.application.Platform;
@@ -108,8 +109,6 @@ public class SimulationPresenter implements SimulationChangeListener, Initializa
 
     private Animal followedAnimal;
 
-    private final List<Vector2D> dominatingAnimalsPositions = new ArrayList<>();
-
     private boolean seeDesirablePositions = false;
 
     private boolean seeDominatingGenome = false;
@@ -186,6 +185,21 @@ public class SimulationPresenter implements SimulationChangeListener, Initializa
         }
     }
 
+    private List<Animal> getDominatingAnimals(WorldMap worldMap) {
+        if (worldMap.getAnimals().isEmpty()) {
+            return List.of();
+        }
+
+        List<Gene> dominatingGenome = this.simulation.getSimulationStatistics()
+            .getOrderedGenomes()
+            .get(0)
+            .getKey();
+
+        return worldMap.getAnimals().stream()
+            .filter(item -> item.getGenes().equals(dominatingGenome))
+            .toList();
+    }
+
     private void drawMap(WorldMap map) {
         this.lastDrawnMap = map;
         this.mapContent.getChildren().retainAll(this.mapContent.getChildren().get(0));
@@ -194,6 +208,7 @@ public class SimulationPresenter implements SimulationChangeListener, Initializa
 
         Boundary boundary = map.getCurrentBounds();
         double cellSize = this.getCellSize(boundary);
+        List<Animal> dominatingAnimals = this.getDominatingAnimals(map);
 
         this.drawCoordinates(boundary, cellSize);
 
@@ -218,22 +233,24 @@ public class SimulationPresenter implements SimulationChangeListener, Initializa
                             "-fx-border-color: %s; -fx-border-width: %spx;",
                             getHexFromColor(Color.ORANGE), borderWidth
                         ));
-                    } else if (
-                        this.seeDominatingGenome &&
-                        !this.dominatingAnimalsPositions.isEmpty() &&
-                        this.dominatingAnimalsPositions.contains(position)
-                    ) {
-                        pane.setStyle(String.format(
-                            "-fx-border-color: %s; -fx-border-width: %spx;",
-                            getHexFromColor(Color.PURPLE), borderWidth
-                        ));
                     }
 
                     for (WorldElement element : map.objectsAt(position)) {
                         element.setImageViewSize(cellSize * 0.95);
 
                         if (element instanceof Animal animal) {
-                            animal.getImageView().setOnMouseClicked(event -> this.followedAnimal = animal);
+                            animal.getImageView().setOnMouseClicked(
+                                this.simulation.getEngine().getExecutionStatus() == SimulationExecutionStatus.PAUSED ?
+                                    event -> this.followedAnimal = animal :
+                                    null
+                            );
+
+                            if (this.seeDominatingGenome && dominatingAnimals.contains(animal)) {
+                                pane.setStyle(String.format(
+                                    "-fx-border-color: %s; -fx-border-width: %spx;",
+                                    getHexFromColor(Color.PURPLE), borderWidth
+                                ));
+                            }
                         }
 
                         pane.getChildren().add(element.getImageView());
@@ -302,29 +319,6 @@ public class SimulationPresenter implements SimulationChangeListener, Initializa
     @Override
     public void simulationChanged(String message) {
         Platform.runLater(() -> this.mapMessage.setText(message));
-    }
-
-    @Override
-    public void simulationChanged(WorldMap map, Collection<Animal> animals) {
-        updateDominatingGenome(animals);
-        Platform.runLater(() -> this.drawMap(map));
-    }
-
-    private void updateDominatingGenome(Collection<Animal> animals) {
-        if (!this.seeDominatingGenome || animals.isEmpty()) return;
-
-        this.dominatingAnimalsPositions.clear();
-
-        List<Gene> dominatingGenome = this.simulation.getSimulationStatistics()
-            .getOrderedGenomes()
-            .get(0)
-            .getKey();
-
-        for (Animal animal : animals) {
-            if (animal.getGenes().equals(dominatingGenome)) {
-                this.dominatingAnimalsPositions.add(animal.getPosition());
-            }
-        }
     }
 
     private void setFollowedStatistics(int descendantCount) {
