@@ -7,9 +7,7 @@ import agh.ics.oop.model.element.EnergyParameters;
 import agh.ics.oop.model.element.behaviour.BehaviourIndicator;
 import agh.ics.oop.model.element.gene.ChildGenesIndicator;
 import agh.ics.oop.model.element.gene.Gene;
-import agh.ics.oop.model.map.Boundary;
 import agh.ics.oop.model.map.WorldMap;
-import javafx.beans.binding.ObjectExpression;
 
 import java.util.*;
 import java.util.concurrent.TimeUnit;

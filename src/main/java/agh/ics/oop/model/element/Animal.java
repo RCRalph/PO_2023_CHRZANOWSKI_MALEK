@@ -7,8 +7,6 @@ import agh.ics.oop.model.Vector2D;
 import agh.ics.oop.model.element.behaviour.BehaviourIndicator;
 import agh.ics.oop.model.element.gene.Gene;
 import agh.ics.oop.model.element.gene.ReproductionInformation;
-import agh.ics.oop.presenter.SimulationPresenter;
-import javafx.application.Platform;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 

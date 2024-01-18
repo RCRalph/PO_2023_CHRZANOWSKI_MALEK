@@ -17,15 +17,15 @@ import javafx.geometry.HPos;
 import javafx.geometry.Pos;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
-import javafx.scene.layout.*;
+import javafx.scene.layout.ColumnConstraints;
+import javafx.scene.layout.GridPane;
+import javafx.scene.layout.RowConstraints;
+import javafx.scene.layout.StackPane;
 import javafx.scene.paint.Color;
-
-import java.net.URL;
-import java.util.Collection;
-import java.util.List;
 
 import java.io.FileWriter;
 import java.io.IOException;
+import java.net.URL;
 import java.util.*;
 
 public class SimulationPresenter implements SimulationChangeListener, Initializable {
