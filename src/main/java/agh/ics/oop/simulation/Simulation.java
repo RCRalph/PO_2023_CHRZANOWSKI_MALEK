@@ -178,6 +178,7 @@ public class Simulation implements Runnable {
                 }
                 case MOVE_ANIMALS -> {
                     this.simulationChanged("Moving animals");
+                    this.simulationChanged(this.worldMap, this.animals);
                     this.worldMap.moveAnimals();
                 }
                 case CONSUME_PLANTS -> {
@@ -200,7 +201,6 @@ public class Simulation implements Runnable {
                                 new HashMap<Animal, Integer>(), this.followedAnimal)
                         );
                     }
-                    this.simulationChanged(this.worldMap, this.animals);
                 }
             }
 

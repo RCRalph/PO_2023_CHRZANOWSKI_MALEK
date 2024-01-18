@@ -15,11 +15,13 @@ import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.geometry.HPos;
 import javafx.geometry.Pos;
+import javafx.scene.Group;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
+import javafx.scene.shape.Circle;
 
 import java.util.Collection;
 import java.util.List;
@@ -199,14 +201,18 @@ public class SimulationPresenter implements SimulationChangeListener {
             for (int c = boundary.lowerLeftCorner().x(); c <= boundary.upperRightCorner().x(); c++) {
                 Vector2D position = new Vector2D(c, r);
                 StackPane pane = new StackPane();
+                double borderWidth =  (double) Math.round(cellSize * 0.05 * 100) /100;
 
                 if (map.isOccupied(position)) {
                     if (!Objects.isNull(followedAnimal) && followedAnimal.isAt(position)){
-                        pane.setStyle("-fx-border-color: "+getHexFromColor(Color.ORANGE)+";"+ "-fx-border-width: 3px;");
+                        pane.setStyle("-fx-border-color: " + getHexFromColor(Color.ORANGE) + ";"
+                                + "-fx-border-width: " + borderWidth + "px;");
                     } else if (seeDesirablePositions && map.getDesirablePositions().contains(position)) {
-                        pane.setStyle("-fx-border-color: " + getHexFromColor(Color.BLUE) + ";" + "-fx-border-width: 3px;");
-                    } else if (seeDominatingGenome && this.dominatingAnimalsPositions.contains(position)) {
-                        pane.setStyle("-fx-border-color: " + getHexFromColor(Color.PURPLE) + ";" + "-fx-border-width: 3px;");
+                        pane.setStyle("-fx-border-color: " + getHexFromColor(Color.BLUE) + ";"
+                                + "-fx-border-width: " + borderWidth + "px;");
+                    } else if (seeDominatingGenome && !this.dominatingAnimalsPositions.isEmpty() && this.dominatingAnimalsPositions.contains(position)) {
+                        pane.setStyle("-fx-border-color: " + getHexFromColor(Color.PURPLE) + ";"
+                                + "-fx-border-width: " + borderWidth + "px;");
                     }
                     for (WorldElement element : map.objectsAt(position)) {
                         element.setImageViewSize(cellSize*0.95);
@@ -222,7 +228,8 @@ public class SimulationPresenter implements SimulationChangeListener {
                             boundary.upperRightCorner().y() - r + 1
                     );
                 } else if (seeDesirablePositions && map.getDesirablePositions().contains(position)){
-                    pane.setStyle("-fx-border-color: "+getHexFromColor(Color.BLUE)+";"+ "-fx-border-width: 3px;");
+                    pane.setStyle("-fx-border-color: "+getHexFromColor(Color.BLUE)+";"
+                            + "-fx-border-width: " + borderWidth + "px;");
                     this.addToGridPane(
                             this.mapContent,
                             pane,
@@ -298,9 +305,11 @@ public class SimulationPresenter implements SimulationChangeListener {
         if (seeDominatingGenome) {
             this.dominatingAnimalsPositions.clear();
             List<Gene> dominatingGenome  = simulation.getSimulationStatistics().getOrderedGenomes().get(0).getKey();
-            for(Animal animal: animals){
-                if (animal.getGenes().equals(dominatingGenome)){
-                    this.dominatingAnimalsPositions.add(animal.getPosition());
+            if (!animals.isEmpty()) {
+                for (Animal animal : animals) {
+                    if (animal.getGenes().equals(dominatingGenome)) {
+                        this.dominatingAnimalsPositions.add(animal.getPosition());
+                    }
                 }
             }
         }
@@ -309,7 +318,7 @@ public class SimulationPresenter implements SimulationChangeListener {
     @Override
     public void simulationChanged(WorldMap map, Collection<Animal> animals){
         updateDominatingGenome(animals);
-        Platform.runLater(()->this.drawMap(map));
+        Platform.runLater(() -> this.drawMap(map));
     }
 
 

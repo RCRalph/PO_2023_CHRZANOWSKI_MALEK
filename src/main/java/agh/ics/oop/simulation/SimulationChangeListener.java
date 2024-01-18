@@ -19,4 +19,5 @@ public interface SimulationChangeListener {
     void simulationChanged(int descendantCount);
 
     void simulationChanged(WorldMap map, Collection<Animal> animals);
+
 }
