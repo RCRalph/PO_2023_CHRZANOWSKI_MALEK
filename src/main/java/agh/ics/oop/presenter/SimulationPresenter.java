@@ -241,8 +241,10 @@ public class SimulationPresenter implements SimulationChangeListener, Initializa
                         if (element instanceof Animal animal) {
                             animal.getImageView().setOnMouseClicked(
                                 this.simulation.getEngine().getExecutionStatus() == SimulationExecutionStatus.PAUSED ?
-                                    event -> this.followedAnimal = animal :
-                                    null
+                                    event -> {
+                                        this.followedAnimal = animal;
+                                        this.simulation.setFollowedAnimal(animal);
+                                    } : null
                             );
 
                             if (this.seeDominatingGenome && dominatingAnimals.contains(animal)) {

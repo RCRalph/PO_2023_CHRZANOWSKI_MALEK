@@ -37,6 +37,8 @@ public class Simulation implements Runnable {
 
     private int currentDay;
 
+    private Animal followedAnimal;
+
     public Simulation(
         SimulationParameters parameters,
         WorldMap worldMap,
@@ -109,6 +111,14 @@ public class Simulation implements Runnable {
         this.simulationChanged("Initialized simulation");
     }
 
+    public void setFollowedAnimal(Animal animal) {
+        if (!this.animals.contains(animal)) {
+            throw new IllegalArgumentException("Animal not found");
+        }
+
+        this.followedAnimal = animal;
+    }
+
     public void subscribe(SimulationChangeListener listener) {
         this.listeners.add(listener);
         this.engine.subscribe(listener);
@@ -163,9 +173,7 @@ public class Simulation implements Runnable {
                     this.currentDay++;
                     this.simulationChanged(
                         this.getSimulationStatistics(),
-                        this.getAnimalChildrenCount(
-                            new HashMap<>(), this.followedAnimal
-                        )
+                        this.getAnimalChildrenCount(new HashMap<>(), this.followedAnimal)
                     );
                 }
             }
