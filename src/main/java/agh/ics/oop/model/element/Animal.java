@@ -171,7 +171,7 @@ public class Animal implements WorldElement {
 
     public void consumePlant() {
         this.energyLevel += this.energyParameters.plantEnergy();
-        this.plantsEaten+=1;
+        this.plantsEaten++;
     }
 
     public ReproductionInformation reproduce() {
@@ -191,7 +191,7 @@ public class Animal implements WorldElement {
     }
 
     public boolean isBeingFollowed() {
-        return isBeingFollowed;
+        return this.isBeingFollowed;
     }
 
     public void setBeingFollowed(boolean beingFollowed) {

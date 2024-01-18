@@ -135,20 +135,20 @@ public class Simulation implements Runnable {
         }
     }
   
-    private void simulationChanged(Animal followedAnimal){
-        for (SimulationChangeListener listener: this.listeners){
+    private void simulationChanged(Animal followedAnimal) {
+        for (SimulationChangeListener listener : this.listeners) {
             listener.simulationChanged(worldMap, followedAnimal);
         }
     }
 
-    private void simulationChanged(int descendantCount){
-        for (SimulationChangeListener listener: this.listeners){
+    private void simulationChanged(int descendantCount) {
+        for (SimulationChangeListener listener : this.listeners) {
             listener.simulationChanged(descendantCount);
         }
     }
 
-    private void simulationChanged(WorldMap map, List<Animal> animals){
-        for (SimulationChangeListener listener: this.listeners){
+    private void simulationChanged(WorldMap map, List<Animal> animals) {
+        for (SimulationChangeListener listener : this.listeners){
             listener.simulationChanged(map, Collections.unmodifiableCollection(animals));
         }
     }
@@ -158,8 +158,8 @@ public class Simulation implements Runnable {
     }
 
     private void setFollowing(){
-        for(Animal animal: this.animals){
-            if(animal.isBeingFollowed()){
+        for (Animal animal: this.animals) {
+            if (animal.isBeingFollowed()) {
                 this.followedAnimal = animal;
                 simulationChanged(animal);
             }

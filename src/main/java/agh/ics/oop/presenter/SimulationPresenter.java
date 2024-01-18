@@ -11,27 +11,24 @@ import agh.ics.oop.simulation.SimulationChangeListener;
 import agh.ics.oop.simulation.SimulationStatistics;
 import com.opencsv.CSVWriter;
 import javafx.application.Platform;
-import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
+import javafx.fxml.Initializable;
 import javafx.geometry.HPos;
 import javafx.geometry.Pos;
-import javafx.scene.Group;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
-import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
-import javafx.scene.shape.Circle;
 
+import java.net.URL;
 import java.util.Collection;
 import java.util.List;
-import java.util.Objects;
 
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.*;
 
-public class SimulationPresenter implements SimulationChangeListener {
+public class SimulationPresenter implements SimulationChangeListener, Initializable {
     @FXML
     private Label mapMessage;
 
@@ -71,12 +68,6 @@ public class SimulationPresenter implements SimulationChangeListener {
     @FXML
     private GridPane popularGenomesGridPane;
 
-    private Simulation simulation;
-
-    private List<SimulationStatistics> simulationStatistics;
-
-    private boolean saveToCSV;
-
     @FXML
     private Label followingGenotype;
 
@@ -99,13 +90,21 @@ public class SimulationPresenter implements SimulationChangeListener {
     private Label followingDaysAlive;
 
     @FXML
-    private Label followingDeathday;
+    private Label followingDeathDay;
 
     @FXML
     private Button dominatingGenomeButton;
 
     @FXML
     private Button desirablePlantFieldsButton;
+
+    private Simulation simulation;
+
+    private List<SimulationStatistics> simulationStatistics;
+
+    private boolean saveToCSV;
+
+    private WorldMap lastDrawnMap;
 
     private Animal followedAnimal;
 
@@ -116,7 +115,6 @@ public class SimulationPresenter implements SimulationChangeListener {
     private boolean seeDominatingGenome = false;
 
     private UUID uuid;
-
 
     public void setSimulationEngine(Simulation simulation) {
         if (this.simulation != null) {
@@ -146,6 +144,7 @@ public class SimulationPresenter implements SimulationChangeListener {
     }
   
     private void addToGridPane(GridPane gridPane, StackPane pane, int column, int row) {
+        GridPane.setHalignment(pane, HPos.CENTER);
         gridPane.add(pane, column, row);
     }
 
@@ -156,7 +155,7 @@ public class SimulationPresenter implements SimulationChangeListener {
     }
 
     private String getHexFromColor(Color color){
-        return "#"+color.toString().substring(2,color.toString().length()-2);
+        return "#" + color.toString().substring(2, color.toString().length() - 2);
     }
 
     private void drawCoordinates(Boundary boundary, double cellSize) {
@@ -188,6 +187,7 @@ public class SimulationPresenter implements SimulationChangeListener {
     }
 
     private void drawMap(WorldMap map) {
+        this.lastDrawnMap = map;
         this.mapContent.getChildren().retainAll(this.mapContent.getChildren().get(0));
         this.mapContent.getColumnConstraints().clear();
         this.mapContent.getRowConstraints().clear();
@@ -201,42 +201,49 @@ public class SimulationPresenter implements SimulationChangeListener {
             for (int c = boundary.lowerLeftCorner().x(); c <= boundary.upperRightCorner().x(); c++) {
                 Vector2D position = new Vector2D(c, r);
                 StackPane pane = new StackPane();
-                double borderWidth =  (double) Math.round(cellSize * 0.05 * 100) /100;
+                double borderWidth = cellSize * 0.025;
+
+                pane.setMinSize(cellSize * 0.9, cellSize * 0.9);
+
+                if (this.seeDesirablePositions && map.getDesirablePositions().contains(position)) {
+                    pane.setStyle(String.format(
+                        "-fx-border-color: %s; -fx-border-width: %spx",
+                        getHexFromColor(Color.BLUE), borderWidth
+                    ));
+                }
 
                 if (map.isOccupied(position)) {
-                    if (!Objects.isNull(followedAnimal) && followedAnimal.isAt(position)){
-                        pane.setStyle("-fx-border-color: " + getHexFromColor(Color.ORANGE) + ";"
-                                + "-fx-border-width: " + borderWidth + "px;");
-                    } else if (seeDesirablePositions && map.getDesirablePositions().contains(position)) {
-                        pane.setStyle("-fx-border-color: " + getHexFromColor(Color.BLUE) + ";"
-                                + "-fx-border-width: " + borderWidth + "px;");
-                    } else if (seeDominatingGenome && !this.dominatingAnimalsPositions.isEmpty() && this.dominatingAnimalsPositions.contains(position)) {
-                        pane.setStyle("-fx-border-color: " + getHexFromColor(Color.PURPLE) + ";"
-                                + "-fx-border-width: " + borderWidth + "px;");
+                    if (this.followedAnimal != null && this.followedAnimal.isAt(position)){
+                        pane.setStyle(String.format(
+                            "-fx-border-color: %s; -fx-border-width: %spx;",
+                            getHexFromColor(Color.ORANGE), borderWidth
+                        ));
+                    } else if (
+                        this.seeDominatingGenome &&
+                        !this.dominatingAnimalsPositions.isEmpty() &&
+                        this.dominatingAnimalsPositions.contains(position)
+                    ) {
+                        pane.setStyle(String.format(
+                            "-fx-border-color: %s; -fx-border-width: %spx;",
+                            getHexFromColor(Color.PURPLE), borderWidth
+                        ));
                     }
+
                     for (WorldElement element : map.objectsAt(position)) {
-                        element.setImageViewSize(cellSize*0.95);
+                        element.setImageViewSize(cellSize * 0.95);
 
                         pane.getChildren().add(element.getImageView());
                         pane.setAlignment(Pos.CENTER);
                         GridPane.setHalignment(element.getImageView(),HPos.CENTER);
                     }
-                    this.addToGridPane(
-                            this.mapContent,
-                            pane,
-                            c + 1 - boundary.lowerLeftCorner().x(),
-                            boundary.upperRightCorner().y() - r + 1
-                    );
-                } else if (seeDesirablePositions && map.getDesirablePositions().contains(position)){
-                    pane.setStyle("-fx-border-color: "+getHexFromColor(Color.BLUE)+";"
-                            + "-fx-border-width: " + borderWidth + "px;");
-                    this.addToGridPane(
-                            this.mapContent,
-                            pane,
-                            c + 1 - boundary.lowerLeftCorner().x(),
-                            boundary.upperRightCorner().y() - r + 1
-                    );
                 }
+
+                this.addToGridPane(
+                    this.mapContent,
+                    pane,
+                    c + 1 - boundary.lowerLeftCorner().x(),
+                    boundary.upperRightCorner().y() - r + 1
+                );
             }
         }
     }
@@ -291,57 +298,59 @@ public class SimulationPresenter implements SimulationChangeListener {
     }
 
     @Override
-    public void simulationChanged(int descendantCount){
-        Platform.runLater(() -> setFollowedStatistics(descendantCount));
+    public void simulationChanged(int descendantCount) {
+        Platform.runLater(() -> this.setFollowedStatistics(descendantCount));
     }
 
     @Override
-    public void simulationChanged(WorldMap map, Animal followedAnimal){
+    public void simulationChanged(WorldMap map, Animal followedAnimal) {
         this.followedAnimal = followedAnimal;
         Platform.runLater(() -> this.drawMap(map));
     }
 
-    private void updateDominatingGenome(Collection<Animal> animals){
-        if (seeDominatingGenome) {
-            this.dominatingAnimalsPositions.clear();
-            List<Gene> dominatingGenome  = simulation.getSimulationStatistics().getOrderedGenomes().get(0).getKey();
-            if (!animals.isEmpty()) {
-                for (Animal animal : animals) {
-                    if (animal.getGenes().equals(dominatingGenome)) {
-                        this.dominatingAnimalsPositions.add(animal.getPosition());
-                    }
-                }
-            }
-        }
-    }
-
     @Override
-    public void simulationChanged(WorldMap map, Collection<Animal> animals){
+    public void simulationChanged(WorldMap map, Collection<Animal> animals) {
         updateDominatingGenome(animals);
         Platform.runLater(() -> this.drawMap(map));
     }
 
+    private void updateDominatingGenome(Collection<Animal> animals) {
+        if (!this.seeDominatingGenome || animals.isEmpty()) return;
 
-    private void setFollowedStatistics(int descendantCount){
-        if (!Objects.isNull(this.followedAnimal)) {
-            if (this.followedAnimal.getDeathDay() < 0) {
-                this.followingActivatedGene.setText(this.followedAnimal.getCurrentGene().toString());
-                this.followingDaysAlive.setText(String.valueOf(
-                        simulation.getSimulationStatistics().day()- this.followedAnimal.getBirthday())
-                );
-                this.followingEnergyLevel.setTextFill(Color.BLACK);
-                this.followingEnergyLevel.setText(String.valueOf(this.followedAnimal.getEnergyLevel()));
-                this.followingChildrenCount.setText(String.valueOf(this.followedAnimal.getChildCount()));
-                this.followingPlantsEaten.setText(String.valueOf(this.followedAnimal.getPlantsEaten()));
-                this.followingGenotype.setText(Gene.listToString(this.followedAnimal.getGenes()));
-                this.followingDescendantCount.setText(String.valueOf(descendantCount));
-                this.followingDeathday.setText("n.s");
-            } else {
-                this.followingDeathday.setText(String.valueOf(this.followedAnimal.getDeathDay()));
-                this.followingEnergyLevel.setText("0");
-                this.followingEnergyLevel.setTextFill(Color.RED);
-                this.followedAnimal = null;
+        this.dominatingAnimalsPositions.clear();
+
+        List<Gene> dominatingGenome = this.simulation.getSimulationStatistics()
+            .getOrderedGenomes()
+            .get(0)
+            .getKey();
+
+        for (Animal animal : animals) {
+            if (animal.getGenes().equals(dominatingGenome)) {
+                this.dominatingAnimalsPositions.add(animal.getPosition());
             }
+        }
+    }
+
+    private void setFollowedStatistics(int descendantCount) {
+        if (this.followedAnimal == null) return;
+
+        if (this.followedAnimal.getDeathDay() < 0) {
+            this.followingActivatedGene.setText(this.followedAnimal.getCurrentGene().toString());
+            this.followingDaysAlive.setText(String.valueOf(
+                simulation.getSimulationStatistics().day() - this.followedAnimal.getBirthday())
+            );
+            this.followingEnergyLevel.setTextFill(Color.BLACK);
+            this.followingEnergyLevel.setText(String.valueOf(this.followedAnimal.getEnergyLevel()));
+            this.followingChildrenCount.setText(String.valueOf(this.followedAnimal.getChildCount()));
+            this.followingPlantsEaten.setText(String.valueOf(this.followedAnimal.getPlantsEaten()));
+            this.followingGenotype.setText(Gene.listToString(this.followedAnimal.getGenes()));
+            this.followingDescendantCount.setText(String.valueOf(descendantCount));
+            this.followingDeathDay.setText("N/A");
+        } else {
+            this.followingDeathDay.setText(String.valueOf(this.followedAnimal.getDeathDay()));
+            this.followingEnergyLevel.setText("0");
+            this.followingEnergyLevel.setTextFill(Color.RED);
+            this.followedAnimal = null;
         }
     }
 
@@ -415,23 +424,26 @@ public class SimulationPresenter implements SimulationChangeListener {
     }
 
     @FXML
-    private void switchDesirablePlantFieldsVisibility(){
+    private void switchDesirablePlantFieldsVisibility() {
         this.seeDesirablePositions = !seeDesirablePositions;
         this.desirablePlantFieldsButton.setText(
-                seeDesirablePositions ?
-                "Hide desirable plant fields" :
-                "Show desirable plant fields"
+            seeDesirablePositions ?
+            "Hide desirable plant fields" :
+            "Show desirable plant fields"
         );
+
+        this.drawMap(this.lastDrawnMap);
     }
 
     @FXML
-    private void switchDominatingGenomeVisibility(){
+    private void switchDominatingGenomeVisibility() {
         this.seeDominatingGenome = !seeDominatingGenome;
         this.dominatingGenomeButton.setText(
-                seeDominatingGenome ?
-                        "Hide dominating genome" :
-                        "Show dominating genome"
+            seeDominatingGenome ?
+            "Hide dominating genome" :
+            "Show dominating genome"
         );
-    }
 
+        this.drawMap(this.lastDrawnMap);
+    }
 }

@@ -114,5 +114,10 @@ public interface WorldMap extends PoseIndicator {
      */
     Boundary getCurrentBounds();
 
+    /**
+     * Return a collection of positions where plants grow more frequently.
+     *
+     * @return Collection of positions
+     */
     Collection<Vector2D> getDesirablePositions();
 }
