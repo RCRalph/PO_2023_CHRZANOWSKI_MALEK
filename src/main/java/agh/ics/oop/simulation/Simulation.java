@@ -209,9 +209,8 @@ public class Simulation implements Runnable {
     }
 
     private Map<List<Gene>, Integer> getGenomePopularity() {
-        List<List<Gene>> genomes = this.animals
+        List<List<Gene>> genomes = this.worldMap.getAnimals()
             .stream()
-            .filter(item -> item.getEnergyLevel() > 0)
             .map(Animal::getGenes)
             .toList();
 
