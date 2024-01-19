@@ -2,7 +2,7 @@ package agh.ics.oop.model.element.gene;
 
 import java.util.List;
 
-public interface ChildGenesIndicator {
+public interface ChildGenesIndicator {  // czemu Indicator?
     /**
      * Generate child's genes using its parents genes and introduce mutations
      *

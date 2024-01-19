@@ -443,4 +443,4 @@ public class SimulationPresenter implements SimulationChangeListener, Initializa
     public void initialize(URL url, ResourceBundle resourceBundle) {
         this.mapContent.setOnMouseClicked(event -> this.drawMap(this.lastDrawnMap));
     }
-}
+}  // dużo tego

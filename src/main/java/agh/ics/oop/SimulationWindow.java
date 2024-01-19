@@ -19,7 +19,7 @@ public class SimulationWindow extends Application {
 
     private final Simulation simulation;
 
-    private final boolean saveToCSV;
+    private final boolean saveToCSV;  // czy to jest cecha okna?
 
     public SimulationWindow(String name, UUID uuid, Simulation simulation, boolean saveToCSV) {
         this.name = name;

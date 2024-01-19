@@ -8,7 +8,7 @@ import java.util.Random;
 public class DarwinistAnimalComparator implements Comparator<Animal> {
     private final Map<Animal, Integer> orderOfEqualValues = new IdentityHashMap<>();
 
-    private final Random random = new Random();
+    private static final Random random = new Random();
 
     private synchronized int orderOfEqualValue(Animal animal) {
         return this.orderOfEqualValues.computeIfAbsent(animal, ignore -> this.random.nextInt());

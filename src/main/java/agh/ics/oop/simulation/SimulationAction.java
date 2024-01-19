@@ -8,7 +8,7 @@ public enum SimulationAction {
     GROW_PLANTS,
     SLEEP;
 
-    public SimulationAction next() {
+    public SimulationAction next() {  // nie wygodniej by było korzystać z values()? wtedy mamy pewność, że każdy krok jest dokładnie raz
         return switch (this) {
             case REMOVE_DEAD_ANIMALS -> MOVE_ANIMALS;
             case MOVE_ANIMALS -> CONSUME_PLANTS;

@@ -10,7 +10,7 @@ class WorldMapAnimals {
 
     public void addAnimal(Animal animal) {
         this.animals
-            .computeIfAbsent(animal.getPosition(), key -> new ArrayList<>())
+            .computeIfAbsent(animal.getPosition(), key -> new ArrayList<>())  // czy klasyczny if nie byłby lepszy?
             .add(animal);
     }
 

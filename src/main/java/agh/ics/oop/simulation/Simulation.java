@@ -27,17 +27,17 @@ public class Simulation implements Runnable {
 
     private final List<Animal> animals = new ArrayList<>();
 
-    private final Map<Animal, List<Animal>> animalChildren = new IdentityHashMap<>();
+    private final Map<Animal, List<Animal>> animalChildren = new IdentityHashMap<>();  // kosztowne
 
     private final EnergyParameters energyParameters;
 
     private SimulationAction simulationAction = SimulationAction.SLEEP.next();
 
-    private final SimulationEngine engine;
+    private final SimulationEngine engine; // que?
 
     private int currentDay;
 
-    private Animal followedAnimal;
+    private Animal followedAnimal;  // czy to cecha symulacji?
 
     public Simulation(
         SimulationParameters parameters,

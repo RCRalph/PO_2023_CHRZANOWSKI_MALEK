@@ -5,8 +5,8 @@ import agh.ics.oop.model.map.Boundary;
 import java.util.Random;
 
 public record Vector2D(int x, int y) {
-    public static Vector2D random(Boundary boundary) {
-        Random random = new Random();
+    public static Vector2D random(Boundary boundary) {  // nie lepiej wrzucić to do Boundary jako metodę instancyjną?
+        Random random = new Random(); // nowy obiekt co wywołanie
 
         return new Vector2D(
             random.nextInt(boundary.lowerLeftCorner().x(), boundary.upperRightCorner().x()),

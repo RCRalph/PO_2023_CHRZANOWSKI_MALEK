@@ -15,7 +15,7 @@ import java.util.List;
 import java.util.Random;
 
 public class Animal implements WorldElement {
-    private static final List<Image> ANIMAL_IMAGES = List.of(
+    private static final List<Image> ANIMAL_IMAGES = List.of( // czy to powinno być w Animal?
         new Image("animals/laciaalien.png"),
         new Image("animals/laciaangy.png"),
         new Image("animals/laciababy.png"),

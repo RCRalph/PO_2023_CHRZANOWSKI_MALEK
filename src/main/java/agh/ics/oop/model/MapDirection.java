@@ -14,7 +14,7 @@ public enum MapDirection {
     WEST(new Vector2D(-1, 0), "W"),
     NORTH_WEST(new Vector2D(-1, 1), "NW");
 
-    private final Vector2D squareVector;
+    private final Vector2D squareVector;  // czemu square?
 
     private final String label;
 
@@ -36,6 +36,6 @@ public enum MapDirection {
     }
 
     public static MapDirection random() {
-        return values()[new Random().nextInt(values().length)];
+        return values()[new Random().nextInt(values().length)];  // nowy obiekt co wywołanie
     }
 }

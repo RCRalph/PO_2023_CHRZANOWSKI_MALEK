@@ -13,7 +13,7 @@ public record SimulationStatistics(
     double averageEnergyLevel,
     double averageLifespan,
     double averageChildren,
-    Map<List<Gene>, Integer> genomePopularity
+    Map<List<Gene>, Integer> genomePopularity  // a nie warto trzymać tylko najpopularniejszego?
 ) {
     public List<Map.Entry<List<Gene>, Integer>> getOrderedGenomes() {
         return this.genomePopularity()
