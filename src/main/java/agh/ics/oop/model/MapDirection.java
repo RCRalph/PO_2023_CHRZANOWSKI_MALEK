@@ -18,6 +18,8 @@ public enum MapDirection {
 
     private final String label;
 
+    private static final Random random = new Random();
+
     MapDirection(Vector2D squareVector, String label) {
         this.squareVector = squareVector;
         this.label = label;
@@ -36,6 +38,6 @@ public enum MapDirection {
     }
 
     public static MapDirection random() {
-        return values()[new Random().nextInt(values().length)];
+        return values()[random.nextInt(values().length)];
     }
 }

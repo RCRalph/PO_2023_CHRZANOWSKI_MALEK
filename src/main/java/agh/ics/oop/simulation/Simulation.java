@@ -37,8 +37,6 @@ public class Simulation implements Runnable {
 
     private int currentDay;
 
-    private Animal followedAnimal;
-
     public Simulation(
         SimulationParameters parameters,
         WorldMap worldMap,
@@ -63,7 +61,7 @@ public class Simulation implements Runnable {
     private void generateAnimals() {
         for (int i = 0; i < this.parameters.startAnimalCount(); i++) {
             Animal animal = new Animal(
-                Vector2D.random(this.worldMap.getCurrentBounds()),
+                this.worldMap.getCurrentBounds().randomVector(),
                 Gene.randomList(this.parameters.geneCount()),
                 this.behaviourIndicator,
                 this.energyParameters,
@@ -107,16 +105,8 @@ public class Simulation implements Runnable {
         this.generateAnimals();
         this.worldMap.growPlants(this.parameters.startPlantCount());
         this.currentDay = 1;
-        this.simulationChanged(this.getSimulationStatistics(), 0);
+        this.simulationChanged(this.getSimulationStatistics());
         this.simulationChanged("Initialized simulation");
-    }
-
-    public void setFollowedAnimal(Animal animal) {
-        if (!this.animals.contains(animal)) {
-            throw new IllegalArgumentException("Animal not found");
-        }
-
-        this.followedAnimal = animal;
     }
 
     public void subscribe(SimulationChangeListener listener) {
@@ -135,9 +125,9 @@ public class Simulation implements Runnable {
         }
     }
 
-    private void simulationChanged(SimulationStatistics statistics, int followedAnimalDescendantCount) {
+    private void simulationChanged(SimulationStatistics statistics) {
         for (SimulationChangeListener listener : this.listeners) {
-            listener.simulationChanged("Updating statistics", statistics, followedAnimalDescendantCount);
+            listener.simulationChanged("Updating statistics", statistics);
         }
     }
 
@@ -171,10 +161,7 @@ public class Simulation implements Runnable {
                 }
                 case SLEEP -> {
                     this.currentDay++;
-                    this.simulationChanged(
-                        this.getSimulationStatistics(),
-                        this.getAnimalChildrenCount(new HashMap<>(), this.followedAnimal)
-                    );
+                    this.simulationChanged(this.getSimulationStatistics());
                 }
             }
 
@@ -192,6 +179,10 @@ public class Simulation implements Runnable {
             this.engine.stop();
             this.simulationChanged("All animals are dead");
         }
+    }
+
+    public int getAnimalChildrenCount(Animal animal) {
+        return this.getAnimalChildrenCount(new HashMap<>(), animal);
     }
 
     private int getAnimalChildrenCount(Map<Animal, Integer> animalChildrenCount, Animal animal) {

@@ -4,11 +4,14 @@ import agh.ics.oop.model.Vector2D;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Random;
 
 public record Boundary(
     Vector2D lowerLeftCorner,
     Vector2D upperRightCorner
 ) {
+    private static final Random random = new Random();
+
     public Boundary {
         if (!lowerLeftCorner.precedes(upperRightCorner)) {
             throw new IllegalArgumentException(String.format(
@@ -47,5 +50,12 @@ public record Boundary(
 
     public boolean isInside(Vector2D position) {
         return this.lowerLeftCorner.precedes(position) && this.upperRightCorner.follows(position);
+    }
+
+    public Vector2D randomVector() {
+        return new Vector2D(
+            random.nextInt(this.lowerLeftCorner.x(), this.upperRightCorner.x()),
+            random.nextInt(this.lowerLeftCorner.y(), this.upperRightCorner.y())
+        );
     }
 }

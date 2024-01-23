@@ -241,10 +241,8 @@ public class SimulationPresenter implements SimulationChangeListener, Initializa
                         if (element instanceof Animal animal) {
                             animal.getImageView().setOnMouseClicked(
                                 this.simulation.getEngine().getExecutionStatus() == SimulationExecutionStatus.PAUSED ?
-                                    event -> {
-                                        this.followedAnimal = animal;
-                                        this.simulation.setFollowedAnimal(animal);
-                                    } : null
+                                    event -> this.followedAnimal = animal :
+                                    null
                             );
 
                             if (this.seeDominatingGenome && dominatingAnimals.contains(animal)) {
@@ -310,11 +308,11 @@ public class SimulationPresenter implements SimulationChangeListener, Initializa
     }
 
     @Override
-    public void simulationChanged(String message, SimulationStatistics statistics, int animalDescendantCount) {
+    public void simulationChanged(String message, SimulationStatistics statistics) {
         this.simulationChanged(message);
         Platform.runLater(() -> {
             this.updateStatistics(statistics);
-            this.setFollowedStatistics(animalDescendantCount);
+            this.setFollowedStatistics();
         });
     }
 
@@ -323,7 +321,7 @@ public class SimulationPresenter implements SimulationChangeListener, Initializa
         Platform.runLater(() -> this.mapMessage.setText(message));
     }
 
-    private void setFollowedStatistics(int descendantCount) {
+    private void setFollowedStatistics() {
         if (this.followedAnimal == null) return;
 
         if (this.followedAnimal.getDeathDay() < 0) {
@@ -336,7 +334,9 @@ public class SimulationPresenter implements SimulationChangeListener, Initializa
             this.followingChildrenCount.setText(String.valueOf(this.followedAnimal.getChildCount()));
             this.followingPlantsEaten.setText(String.valueOf(this.followedAnimal.getPlantsEaten()));
             this.followingGenotype.setText(Gene.listToString(this.followedAnimal.getGenes()));
-            this.followingDescendantCount.setText(String.valueOf(descendantCount));
+            this.followingDescendantCount.setText(String.valueOf(
+                this.simulation.getAnimalChildrenCount(this.followedAnimal)
+            ));
             this.followingDeathDay.setText("N/A");
         } else {
             this.followingDeathDay.setText(String.valueOf(this.followedAnimal.getDeathDay()));
